@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.infraReport.admin.dao.AdminDashboardDAO">
+
+    <!-- 전체 담당자 목록 조회 -->
+    <select id="getAllManagers" resultType="String">
+        SELECT DISTINCT MANAGER
+        FROM TB_DAILY_REPORT
+        WHERE REPORT_DATE = #{reportDate}
+          AND MANAGER IS NOT NULL
+          AND MANAGER != ''
+        ORDER BY MANAGER
+    </select>
+
+    <!-- 담당자별 일일 작업 진행률 -->
+    <select id="getDailyProgressByManager" resultType="com.infraReport.admin.dto.AdminDashboardDTO">
+        SELECT 
+            MANAGER AS manager,
+            COUNT(*) AS totalTasks,
+            SUM(CASE WHEN STATUS = '정상' THEN 1 ELSE 0 END) AS completedTasks,
+            SUM(CASE WHEN STATUS != '정상' THEN 1 ELSE 0 END) AS pendingTasks,
+            ROUND(SUM(CASE WHEN STATUS = '정상' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 0) AS completionRate
+        FROM TB_DAILY_REPORT
+        WHERE MANAGER = #{manager}
+          AND REPORT_DATE = #{reportDate}
+        GROUP BY MANAGER
+    </select>
+
+    <!-- 담당자별 비정기 작업 현황 (기한별) - 가상 데이터 (실제는 DUE_DATE 컬럼 필요) -->
+    <select id="getIrregularTasksByManager" resultType="com.infraReport.admin.dto.AdminDashboardDTO">
+        SELECT 
+            MANAGER AS manager,
+            5 AS totalIrregularTasks,
+            0 AS overdueCount,
+            1 AS within1Day,
+            2 AS within3Days,
+            0 AS within5Days,
+            2 AS within2Weeks,
+            0 AS within4Weeks,
+            0 AS over1Month
+        FROM TB_DAILY_REPORT
+        WHERE MANAGER = #{manager}
+          AND REPORT_DATE = #{reportDate}
+        LIMIT 1
+    </select>
+
+    <!-- 특정 담당자의 작업 상세 목록 -->
+    <select id="getManagerTaskDetails" resultType="com.infraReport.admin.dto.AdminDashboardDTO">
+        SELECT 
+            REPORT_DATE AS reportDate,
+            SERVICE_NAME AS serviceName,
+            TASK_DESCRIPTION AS taskDescription,
+            TASK_TYPE AS taskType,
+            STATUS AS status,
+            PRIORITY AS priority,
+            MANAGER AS manager,
+            REMARKS AS remarks
+        FROM TB_DAILY_REPORT
+        WHERE MANAGER = #{manager}
+          AND REPORT_DATE = #{reportDate}
+        ORDER BY 
+            CASE STATUS 
+                WHEN '장애' THEN 1
+                WHEN '주의' THEN 2
+                WHEN '정상' THEN 3
+            END,
+            CREATED_DATE DESC
+    </select>
+
+    <!-- 전체 팀원 일일 진행률 통계 -->
+    <select id="getAllDailyProgress" resultType="com.infraReport.admin.dto.AdminDashboardDTO">
+        SELECT 
+            MANAGER AS manager,
+            COUNT(*) AS totalTasks,
+            SUM(CASE WHEN STATUS = '정상' THEN 1 ELSE 0 END) AS completedTasks,
+            SUM(CASE WHEN STATUS != '정상' THEN 1 ELSE 0 END) AS pendingTasks,
+            ROUND(SUM(CASE WHEN STATUS = '정상' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 0) AS completionRate
+        FROM TB_DAILY_REPORT
+        WHERE REPORT_DATE = #{reportDate}
+          AND MANAGER IS NOT NULL
+          AND MANAGER != ''
+        GROUP BY MANAGER
+        ORDER BY MANAGER
+    </select>
+
+    <!-- 전체 팀원 비정기 작업 통계 - 가상 데이터 -->
+    <select id="getAllIrregularTasks" resultType="com.infraReport.admin.dto.AdminDashboardDTO">
+        SELECT 
+            MANAGER AS manager,
+            5 AS totalIrregularTasks,
+            0 AS overdueCount,
+            1 AS within1Day,
+            2 AS within3Days,
+            0 AS within5Days,
+            2 AS within2Weeks,
+            0 AS within4Weeks,
+            0 AS over1Month
+        FROM (
+            SELECT DISTINCT MANAGER
+            FROM TB_DAILY_REPORT
+            WHERE REPORT_DATE = #{reportDate}
+              AND MANAGER IS NOT NULL
+              AND MANAGER != ''
+        ) AS managers
+        ORDER BY MANAGER
+    </select>
+
+</mapper>

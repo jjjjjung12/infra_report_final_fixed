@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.infraReport.hwsw.dao.HwswDAO">
+
+	<!-- HW/SW 점검 결과 조회 -->
+    <select id="selectHwswCheckList" resultType="com.infraReport.hwsw.dto.HwswDTO">
+        SELECT CHECK_ID AS REPORT_ID 		/* 점검 ID	*/
+		     , CHECK_DATE AS REPORT_DATE	/* 점검 일자	*/
+		     , SERVER_NAME              	/* 서버명		*/
+		     , CHECK_ITEM               	/* 점검항목	*/
+		     , CHECK_CONTENT            	/* 점검내용	*/
+		     , CHECK_RESULT             	/* 점검결과	*/
+		     , ERROR_CONTENT            	/* 에러내용	*/
+		     , ACTION_TAKEN             	/* 조치사항	*/
+		     , MANAGER                  	/* 담당자		*/
+		     , CREATED_DATE             	/* 등록일시	*/
+		     , UPDATED_DATE             	/* 수정일시	*/
+		     , CREATED_BY               	/* 등록자		*/
+		     , UPDATED_BY               	/* 수정자		*/
+		  FROM TB_HWSW_CHECK
+         WHERE 1=1
+         
+         <!-- 날짜 조건 -->
+         <if test="startReportDate != null and endReportDate != null and startReportDate != '' and endReportDate != ''">
+	        AND CHECK_DATE BETWEEN #{startReportDate} AND #{endReportDate}
+	     </if>
+	     <if test="(startReportDate != null and startReportDate != '') and (endReportDate == null or endReportDate == '')">
+	        AND CHECK_DATE <![CDATA[>=]]> #{startReportDate}
+	     </if>
+	     <if test="(endReportDate != null and endReportDate != '') and (startReportDate == null or startReportDate == '')">
+	        AND CHECK_DATE <![CDATA[<=]]> #{endReportDate}
+	     </if>
+	     
+	     <!-- 검색 필드 조건 -->
+	     <choose>
+	        <!-- 특정 필드 검색 -->
+	        <when test="searchField != null and searchField != '' and searchKeyword != null and searchKeyword != ''">
+	            AND
+	            <choose>
+	                <when test="searchField == 'SERVER_NAME'"> SERVER_NAME LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'CHECK_ITEM'"> CHECK_ITEM LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'CHECK_RESULT'"> CHECK_RESULT LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'MANAGER'"> MANAGER LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'CREATED_BY'"> CREATED_BY LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'UPDATED_BY'"> UPDATED_BY LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	            </choose>
+	        </when>
+	
+	        <!-- 전체 검색 -->
+	        <when test="(searchField == null or searchField == '') and searchKeyword != null and searchKeyword != ''">
+	            AND (
+	                   SERVER_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR CHECK_ITEM LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR CHECK_RESULT LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR MANAGER LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR CREATED_BY LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR UPDATED_BY LIKE CONCAT('%', #{searchKeyword}, '%')
+	            )
+	        </when>
+	     </choose>
+         
+         <!-- 정렬 조건 -->
+		 <choose>
+	        <when test="sortField != null and sortField != ''">
+	            ORDER BY ${sortField}
+	            <if test="sortOrder != null and sortOrder != ''">
+	                ${sortOrder}
+	            </if>
+	        </when>
+	        <otherwise>
+	            ORDER BY CREATED_DATE DESC
+	        </otherwise>
+	     </choose>
+    </select>
+    
+    <!-- HW/SW 점검 결과 등록 -->
+    <insert id="insertHwswCheck" parameterType="com.infraReport.hwsw.dto.HwswDTO">
+	    INSERT INTO TB_HWSW_CHECK (
+			  CHECK_DATE
+			, SERVER_NAME
+			, CHECK_ITEM
+			, CHECK_CONTENT
+			, CHECK_RESULT
+			, ERROR_CONTENT
+			, ACTION_TAKEN
+			, MANAGER
+			, CREATED_BY
+		) VALUES (
+			  #{reportDate}
+			, #{serverName}
+			, #{checkItem}
+			, #{checkContent}
+			, #{checkResult}
+			, #{errorContent}
+			, #{actionTaken}
+			, #{manager}
+			, #{createdBy}
+		)
+	</insert>
+	
+	<!-- HW/SW 점검 결과 상세 조회 -->
+    <select id="selectHwswCheckById" resultType="com.infraReport.hwsw.dto.HwswDTO">
+        SELECT CHECK_ID AS REPORT_ID 		/* 점검 ID	*/
+		     , CHECK_DATE AS REPORT_DATE	/* 점검 일자	*/
+		     , SERVER_NAME              	/* 서버명		*/
+		     , CHECK_ITEM               	/* 점검항목	*/
+		     , CHECK_CONTENT            	/* 점검내용	*/
+		     , CHECK_RESULT             	/* 점검결과	*/
+		     , ERROR_CONTENT            	/* 에러내용	*/
+		     , ACTION_TAKEN             	/* 조치사항	*/
+		     , MANAGER                  	/* 담당자		*/
+		     , CREATED_DATE             	/* 등록일시	*/
+		     , UPDATED_DATE             	/* 수정일시	*/
+		     , CREATED_BY               	/* 등록자		*/
+		     , UPDATED_BY               	/* 수정자		*/
+		  FROM TB_HWSW_CHECK
+         WHERE 1=1
+           AND CHECK_ID = #{reportId}
+    </select>
+    
+    <!-- HW/SW 점검 결과 수정 -->
+    <update id="updateHwswCheck" parameterType="com.infraReport.hwsw.dto.HwswDTO">
+    	UPDATE TB_HWSW_CHECK 
+		   SET SERVER_NAME = #{serverName}
+		     , CHECK_ITEM = #{checkItem}
+		     , CHECK_CONTENT = #{checkContent}
+		     , CHECK_RESULT = #{checkResult}
+		     , ERROR_CONTENT = #{errorContent}
+		     , ACTION_TAKEN = #{actionTaken}
+		     , MANAGER = #{manager}
+		     , UPDATED_BY = #{updatedBy}
+		     , UPDATED_DATE = CURRENT_TIMESTAMP 
+<!-- 		     , CHECK_DATE = #{reportDate} -->
+		 WHERE CHECK_ID = #{reportId}
+    </update>
+    
+    <!-- HW/SW 점검 결과 삭제 -->
+    <delete id="deleteHwswCheck" parameterType="Integer">
+    	DELETE FROM TB_HWSW_CHECK 
+    	 WHERE CHECK_ID = #{reportId}
+    </delete>
+
+</mapper>

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.infraReport.security.dao.SecurityDAO">
+
+	<!-- 보안관제 활동 현황 조회 -->
+    <select id="selectSecurityActivityList" resultType="com.infraReport.security.dto.SecurityDTO">
+        SELECT ACTIVITY_ID AS REPORT_ID			/* 보안 활동 ID						*/			
+		     , ACTIVITY_DATE AS REPORT_DATE	    /* 보안 활동 일자						*/
+		     , ACTIVITY_TYPE AS TASK_TYPE       /* 활동유형 (웹쉘탐지/바이러스탐지/DDoS방어 등)	*/
+		     , RISK_LEVEL                       /* 위험 레벨							*/
+		     , SOURCE_IP                        /* 공격 IP							*/
+		     , DESTINATION_IP                   /* 대상 IP							*/
+		     , DETECTION_COUNT                  /* 탐지건수							*/
+		     , BLOCKED_COUNT                    /* 차단건수							*/
+		     , DETAIL_INFO                      /* 상세 정보							*/
+		     , ACTION_STATUS                    /* 처리 상태							*/
+		     , ACTION_STATUS AS STATUS          /* 상태								*/
+		     , MANAGER                          /* 담당자								*/
+		     , CREATED_DATE                     /* 등록일시							*/
+		     , UPDATED_DATE                     /* 수정일시							*/
+		     , CREATED_BY                       /* 등록자								*/
+		     , UPDATED_BY                       /* 수정자								*/
+		  FROM TB_SECURITY_ACTIVITY
+         WHERE 1=1
+         
+         <!-- 날짜 조건 -->
+         <if test="startReportDate != null and endReportDate != null and startReportDate != '' and endReportDate != ''">
+	        AND ACTIVITY_DATE BETWEEN #{startReportDate} AND #{endReportDate}
+	     </if>
+	     <if test="(startReportDate != null and startReportDate != '') and (endReportDate == null or endReportDate == '')">
+	        AND ACTIVITY_DATE <![CDATA[>=]]> #{startReportDate}
+	     </if>
+	     <if test="(endReportDate != null and endReportDate != '') and (startReportDate == null or startReportDate == '')">
+	        AND ACTIVITY_DATE <![CDATA[<=]]> #{endReportDate}
+	     </if>
+	     
+	     <!-- 검색 필드 조건 -->
+	     <choose>
+	        <!-- 특정 필드 검색 -->
+	        <when test="searchField != null and searchField != '' and searchKeyword != null and searchKeyword != ''">
+	            AND
+	            <choose>
+	                <when test="searchField == 'ACTIVITY_TYPE'"> ACTIVITY_TYPE LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'ACTION_STATUS'"> ACTION_STATUS LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'DETAIL_INFO'"> DETAIL_INFO LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'CREATED_BY'"> CREATED_BY LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'UPDATED_BY'"> UPDATED_BY LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	            </choose>
+	        </when>
+	
+	        <!-- 전체 검색 -->
+	        <when test="(searchField == null or searchField == '') and searchKeyword != null and searchKeyword != ''">
+	            AND (
+	                   ACTIVITY_TYPE LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR ACTION_STATUS LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR DETAIL_INFO LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR CREATED_BY LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR UPDATED_BY LIKE CONCAT('%', #{searchKeyword}, '%')
+	            )
+	        </when>
+	     </choose>
+         
+         <!-- 정렬 조건 -->
+		 <choose>
+	        <when test="sortField != null and sortField != ''">
+	            ORDER BY ${sortField}
+	            <if test="sortOrder != null and sortOrder != ''">
+	                ${sortOrder}
+	            </if>
+	        </when>
+	        <otherwise>
+	            ORDER BY CREATED_DATE DESC
+	        </otherwise>
+	     </choose>
+    </select>
+    
+    <!-- 보안관제 활동 현황 등록 -->
+    <insert id="insertSecurityActivity" parameterType="com.infraReport.security.dto.SecurityDTO">
+	    INSERT INTO TB_SECURITY_ACTIVITY (
+			  ACTIVITY_DATE
+			, ACTIVITY_TYPE
+			, DETECTION_COUNT
+			, BLOCKED_COUNT
+			, DETAIL_INFO
+			, ACTION_STATUS
+			, MANAGER
+			, CREATED_BY
+		) VALUES (
+			  #{reportDate}
+			, #{taskType}
+			, #{detectionCount}
+			, #{blockedCount}
+			, #{detailInfo}
+			, #{actionStatus}
+			, #{manager}
+			, #{createdBy}
+		)
+	</insert>
+	
+	<!-- 보안관제 활동 현황 상세 조회 -->
+    <select id="selectSecurityActivityById" resultType="com.infraReport.security.dto.SecurityDTO">
+        SELECT ACTIVITY_ID AS REPORT_ID			/* 보안 활동 ID						*/			
+		     , ACTIVITY_DATE AS REPORT_DATE	    /* 보안 활동 일자						*/
+		     , ACTIVITY_TYPE AS TASK_TYPE       /* 활동유형 (웹쉘탐지/바이러스탐지/DDoS방어 등)	*/
+		     , RISK_LEVEL                       /* 위험 레벨							*/
+		     , SOURCE_IP                        /* 공격 IP							*/
+		     , DESTINATION_IP                   /* 대상 IP							*/
+		     , DETECTION_COUNT                  /* 탐지건수							*/
+		     , BLOCKED_COUNT                    /* 차단건수							*/
+		     , DETAIL_INFO                      /* 상세 정보							*/
+		     , ACTION_STATUS                    /* 처리 상태							*/
+		     , ACTION_STATUS AS STATUS          /* 상태								*/
+		     , MANAGER                          /* 담당자								*/
+		     , CREATED_DATE                     /* 등록일시							*/
+		     , UPDATED_DATE                     /* 수정일시							*/
+		     , CREATED_BY                       /* 등록자								*/
+		     , UPDATED_BY                       /* 수정자								*/
+		  FROM TB_SECURITY_ACTIVITY
+         WHERE 1=1
+           AND ACTIVITY_ID = #{reportId}
+    </select>
+    
+    <!-- 보안관제 활동 현황 수정 -->
+    <update id="updateSecurityActivity" parameterType="com.infraReport.security.dto.SecurityDTO">
+    	UPDATE TB_SECURITY_ACTIVITY 
+		   SET ACTIVITY_TYPE = #{taskType}
+		     , DETECTION_COUNT = #{detectionCount}
+		     , BLOCKED_COUNT = #{blockedCount}
+		     , DETAIL_INFO = #{detailInfo}
+		     , ACTION_STATUS = #{actionStatus}
+		     , MANAGER = #{manager}
+		     , UPDATED_BY = #{updatedBy}
+		     , UPDATED_DATE = CURRENT_TIMESTAMP 
+<!-- 		     , ACTIVITY_DATE = #{reportDate} -->
+		 WHERE ACTIVITY_ID = #{reportId}
+    </update>
+    
+    <!-- 보안관제 활동 현황 삭제 -->
+    <delete id="deleteSecurityActivity" parameterType="Integer">
+    	DELETE FROM TB_SECURITY_ACTIVITY 
+    	 WHERE ACTIVITY_ID = #{reportId}
+    </delete>
+    
+</mapper>

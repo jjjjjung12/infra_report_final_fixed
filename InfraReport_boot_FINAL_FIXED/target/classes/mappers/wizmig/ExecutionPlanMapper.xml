@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.infraReport.wizmig.dao.ExecutionPlanDAO">
+
+    <resultMap id="ExecutionPlanResult" type="com.infraReport.wizmig.dto.ExecutionPlanDTO">
+        <id property="planId" column="plan_id"/>
+        <result property="planName" column="plan_name"/>
+        <result property="description" column="description"/>
+        <result property="sessionName" column="session_name"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="startedAt" column="started_at"/>
+        <result property="completedAt" column="completed_at"/>
+        <result property="createdBy" column="created_by"/>
+    </resultMap>
+
+    <resultMap id="ExecutionStepResult" type="com.infraReport.wizmig.dto.ExecutionStepDTO">
+        <id property="stepId" column="step_id"/>
+        <result property="planId" column="plan_id"/>
+        <result property="stepOrder" column="step_order"/>
+        <result property="scriptName" column="script_name"/>
+        <result property="scriptPath" column="script_path"/>
+        <result property="arguments" column="arguments"/>
+        <result property="status" column="status"/>
+        <result property="timeoutMinutes" column="timeout_minutes"/>
+        <result property="onTimeout" column="on_timeout"/>
+        <result property="onError" column="on_error"/>
+        <result property="maxRetries" column="max_retries"/>
+        <result property="currentRetry" column="current_retry"/>
+        <result property="pid" column="pid"/>
+        <result property="apid" column="apid"/>
+        <result property="logFile" column="log_file"/>
+        <result property="result" column="result"/>
+        <result property="startedAt" column="started_at"/>
+        <result property="completedAt" column="completed_at"/>
+        <result property="executionTime" column="execution_time"/>
+    </resultMap>
+
+    <select id="selectExecutionPlanList" resultMap="ExecutionPlanResult">
+        SELECT *
+        FROM execution_plan
+        <where>
+            <if test="sessionName != null and sessionName != ''">
+                AND session_name = #{sessionName}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="selectExecutionPlan" resultMap="ExecutionPlanResult">
+        SELECT *
+        FROM execution_plan
+        WHERE plan_id = #{planId}
+    </select>
+
+    <insert id="insertExecutionPlan" parameterType="com.infraReport.wizmig.dto.ExecutionPlanDTO"
+            useGeneratedKeys="true" keyProperty="planId">
+        INSERT INTO execution_plan (
+            plan_name, description, session_name, status, created_at, updated_at, created_by
+        ) VALUES (
+            #{planName}, #{description}, #{sessionName}, #{status}, #{createdAt}, #{updatedAt}, #{createdBy}
+        )
+    </insert>
+
+    <update id="updateExecutionPlan">
+        UPDATE execution_plan
+        <set>
+            <if test="planName != null">plan_name = #{planName},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="sessionName != null">session_name = #{sessionName},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+            <if test="startedAt != null">started_at = #{startedAt},</if>
+            <if test="completedAt != null">completed_at = #{completedAt},</if>
+        </set>
+        WHERE plan_id = #{planId}
+    </update>
+
+    <delete id="deleteExecutionPlan">
+        DELETE FROM execution_plan
+        WHERE plan_id = #{planId}
+    </delete>
+
+    <select id="selectExecutionSteps" resultMap="ExecutionStepResult">
+        SELECT *
+        FROM execution_step
+        WHERE plan_id = #{planId}
+        ORDER BY step_order ASC
+    </select>
+    
+    <select id="selectExecutionStep" resultMap="ExecutionStepResult">
+        SELECT *
+        FROM execution_step
+        WHERE step_id = #{stepId}
+    </select>
+
+    <insert id="insertExecutionStep" parameterType="com.infraReport.wizmig.dto.ExecutionStepDTO"
+            useGeneratedKeys="true" keyProperty="stepId">
+        INSERT INTO execution_step (
+            plan_id, step_order, script_name, script_path, arguments,
+            status, timeout_minutes, on_timeout, on_error, max_retries, current_retry
+        ) VALUES (
+            #{planId}, #{stepOrder}, #{scriptName}, #{scriptPath}, #{arguments},
+            #{status}, #{timeoutMinutes}, #{onTimeout}, #{onError}, #{maxRetries}, #{currentRetry}
+        )
+    </insert>
+
+    <update id="updateExecutionStep">
+        UPDATE execution_step
+        <set>
+            <if test="stepOrder != null">step_order = #{stepOrder},</if>
+            <if test="scriptName != null">script_name = #{scriptName},</if>
+            <if test="scriptPath != null">script_path = #{scriptPath},</if>
+            <if test="arguments != null">arguments = #{arguments},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="timeoutMinutes != null">timeout_minutes = #{timeoutMinutes},</if>
+            <if test="onTimeout != null">on_timeout = #{onTimeout},</if>
+            <if test="onError != null">on_error = #{onError},</if>
+            <if test="maxRetries != null">max_retries = #{maxRetries},</if>
+            <if test="currentRetry != null">current_retry = #{currentRetry},</if>
+            <if test="pid != null">pid = #{pid},</if>
+            <if test="apid != null">apid = #{apid},</if>
+            <if test="logFile != null">log_file = #{logFile},</if>
+            <if test="result != null">result = #{result},</if>
+            <if test="startedAt != null">started_at = #{startedAt},</if>
+            <if test="completedAt != null">completed_at = #{completedAt},</if>
+            <if test="executionTime != null">execution_time = #{executionTime},</if>
+        </set>
+        WHERE step_id = #{stepId}
+    </update>
+
+    <delete id="deleteExecutionStep">
+        DELETE FROM execution_step
+        WHERE step_id = #{stepId}
+    </delete>
+
+    <delete id="deleteExecutionStepsByPlanId">
+        DELETE FROM execution_step
+        WHERE plan_id = #{planId}
+    </delete>
+
+</mapper>

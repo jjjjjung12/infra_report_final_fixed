@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.infraReport.dr.dao.DrDashboardDAO">
+
+    <select id="selectDrillList" parameterType="map" resultType="com.infraReport.dr.dto.DrDashboardDTO$DrillInfo">
+        SELECT DRILL_ID as drillId, DRILL_NAME as drillName, DRILL_TYPE as drillType, DRILL_DESC as drillDesc, DRILL_DATE as drillDate, START_TIME as startTime, END_TIME as endTime, RTO_HOURS as rtoHours, RTO_MINUTES as rtoMinutes, STATUS as status, CREATE_USER_ID as createUserId, CREATE_DATE as createDate, UPDATE_USER_ID as updateUserId, UPDATE_DATE as updateDate FROM TB_DR_DRILL WHERE 1=1
+        <if test="drillType != null and drillType != ''"> AND DRILL_TYPE = #{drillType} </if>
+        <if test="status != null and status != ''"> AND STATUS = #{status} </if>
+        ORDER BY DRILL_DATE DESC, DRILL_ID DESC
+    </select>
+    
+    <select id="selectDrillById" parameterType="int" resultType="com.infraReport.dr.dto.DrDashboardDTO$DrillInfo">
+        SELECT DRILL_ID as drillId, DRILL_NAME as drillName, DRILL_TYPE as drillType, DRILL_DESC as drillDesc, DRILL_DATE as drillDate, START_TIME as startTime, END_TIME as endTime, RTO_HOURS as rtoHours, RTO_MINUTES as rtoMinutes, STATUS as status, CREATE_USER_ID as createUserId, CREATE_DATE as createDate, UPDATE_USER_ID as updateUserId, UPDATE_DATE as updateDate FROM TB_DR_DRILL WHERE DRILL_ID = #{drillId}
+    </select>
+    
+    <select id="selectActiveDrill" resultType="com.infraReport.dr.dto.DrDashboardDTO$DrillInfo">
+        SELECT DRILL_ID as drillId, DRILL_NAME as drillName, DRILL_TYPE as drillType, DRILL_DESC as drillDesc, DRILL_DATE as drillDate, START_TIME as startTime, END_TIME as endTime, RTO_HOURS as rtoHours, RTO_MINUTES as rtoMinutes, STATUS as status, CREATE_USER_ID as createUserId, CREATE_DATE as createDate FROM TB_DR_DRILL WHERE STATUS IN ('PROGRESS', 'PAUSED') ORDER BY START_TIME DESC LIMIT 1
+    </select>
+    
+    <insert id="insertDrill" parameterType="com.infraReport.dr.dto.DrDashboardDTO$DrillInfo" useGeneratedKeys="true" keyProperty="drillId">
+        INSERT INTO TB_DR_DRILL (DRILL_NAME, DRILL_TYPE, DRILL_DESC, DRILL_DATE, RTO_HOURS, RTO_MINUTES, STATUS, CREATE_USER_ID) VALUES (#{drillName}, #{drillType}, #{drillDesc}, #{drillDate}, #{rtoHours}, #{rtoMinutes}, 'PLANNED', #{createUserId})
+    </insert>
+    
+    <update id="updateDrill" parameterType="com.infraReport.dr.dto.DrDashboardDTO$DrillInfo">
+        UPDATE TB_DR_DRILL SET DRILL_NAME = #{drillName}, DRILL_TYPE = #{drillType}, DRILL_DESC = #{drillDesc}, DRILL_DATE = #{drillDate}, RTO_HOURS = #{rtoHours}, RTO_MINUTES = #{rtoMinutes}, UPDATE_USER_ID = #{updateUserId}, UPDATE_DATE = NOW() WHERE DRILL_ID = #{drillId}
+    </update>
+    
+    <delete id="deleteDrill" parameterType="int">DELETE FROM TB_DR_DRILL WHERE DRILL_ID = #{drillId}</delete>
+    <update id="updateDrillStatus">UPDATE TB_DR_DRILL SET STATUS = #{status}, UPDATE_DATE = NOW() WHERE DRILL_ID = #{drillId}</update>
+    <update id="startDrill" parameterType="int">UPDATE TB_DR_DRILL SET STATUS = 'PROGRESS', START_TIME = NOW(), UPDATE_DATE = NOW() WHERE DRILL_ID = #{drillId}</update>
+    <update id="pauseDrill" parameterType="int">UPDATE TB_DR_DRILL SET STATUS = 'PAUSED', UPDATE_DATE = NOW() WHERE DRILL_ID = #{drillId}</update>
+    <update id="resumeDrill" parameterType="int">UPDATE TB_DR_DRILL SET STATUS = 'PROGRESS', UPDATE_DATE = NOW() WHERE DRILL_ID = #{drillId}</update>
+    <update id="restartDrill" parameterType="int">UPDATE TB_DR_DRILL SET STATUS = 'PROGRESS', START_TIME = NOW(), END_TIME = NULL, UPDATE_DATE = NOW() WHERE DRILL_ID = #{drillId}</update>
+    <update id="endDrill" parameterType="int">UPDATE TB_DR_DRILL SET STATUS = 'COMPLETED', END_TIME = NOW(), UPDATE_DATE = NOW() WHERE DRILL_ID = #{drillId}</update>
+
+    <update id="resetTasks" parameterType="int">UPDATE TB_DR_TASK SET STATUS = 'WAITING', ACTUAL_START_TIME = NULL, ACTUAL_END_TIME = NULL, PROGRESS_RATE = 0, UPDATE_DATE = NOW() WHERE DRILL_ID = #{drillId}</update>
+    <update id="resetSubtasks" parameterType="int">UPDATE TB_DR_SUBTASK SET STATUS = 'WAITING', ACTUAL_START_TIME = NULL, ACTUAL_END_TIME = NULL, PROGRESS_RATE = 0, UPDATE_DATE = NOW() WHERE TASK_ID IN (SELECT TASK_ID FROM TB_DR_TASK WHERE DRILL_ID = #{drillId})</update>
+    <update id="resetRecoverySystems" parameterType="int">UPDATE TB_DR_RECOVERY_SYSTEM SET STATUS = 'WAITING', START_TIME = NULL, END_TIME = NULL, UPDATE_DATE = NOW() WHERE DRILL_ID = #{drillId}</update>
+    <update id="resetBusinessChecks" parameterType="int">UPDATE TB_DR_BUSINESS_CHECK SET STATUS = 'WAITING', CHECK_TIME = NULL, UPDATE_DATE = NOW() WHERE DRILL_ID = #{drillId}</update>
+
+    <select id="selectCenterList" resultType="com.infraReport.dr.dto.DrDashboardDTO$CenterInfo">SELECT CENTER_ID as centerId, CENTER_NAME as centerName, CENTER_CODE as centerCode, LATITUDE as latitude, LONGITUDE as longitude, CENTER_TYPE as centerType, ADDR as addr, USE_YN as useYn FROM TB_DR_CENTER WHERE USE_YN = 'Y' ORDER BY CENTER_TYPE, CENTER_NAME</select>
+    <select id="selectCentersByDrillId" parameterType="int" resultType="com.infraReport.dr.dto.DrDashboardDTO$CenterInfo">SELECT c.CENTER_ID as centerId, c.CENTER_NAME as centerName, c.CENTER_CODE as centerCode, c.LATITUDE as latitude, c.LONGITUDE as longitude, c.CENTER_TYPE as centerType, c.ADDR as addr, c.USE_YN as useYn, dc.ROLE_TYPE as roleType FROM TB_DR_CENTER c INNER JOIN TB_DR_DRILL_CENTER dc ON c.CENTER_ID = dc.CENTER_ID WHERE dc.DRILL_ID = #{drillId} ORDER BY c.CENTER_TYPE, c.CENTER_NAME</select>
+    <insert id="insertCenter" parameterType="com.infraReport.dr.dto.DrDashboardDTO$CenterInfo" useGeneratedKeys="true" keyProperty="centerId">INSERT INTO TB_DR_CENTER (CENTER_NAME, CENTER_CODE, LATITUDE, LONGITUDE, CENTER_TYPE, ADDR) VALUES (#{centerName}, #{centerCode}, #{latitude}, #{longitude}, #{centerType}, #{addr})</insert>
+    <select id="selectCenterById" parameterType="int" resultType="com.infraReport.dr.dto.DrDashboardDTO$CenterInfo">SELECT CENTER_ID as centerId, CENTER_NAME as centerName, CENTER_CODE as centerCode, LATITUDE as latitude, LONGITUDE as longitude, CENTER_TYPE as centerType, ADDR as addr, USE_YN as useYn FROM TB_DR_CENTER WHERE CENTER_ID = #{centerId}</select>
+    <update id="updateCenter" parameterType="com.infraReport.dr.dto.DrDashboardDTO$CenterInfo">UPDATE TB_DR_CENTER SET CENTER_NAME = #{centerName}, CENTER_CODE = #{centerCode}, LATITUDE = #{latitude}, LONGITUDE = #{longitude}, CENTER_TYPE = #{centerType}, ADDR = #{addr} WHERE CENTER_ID = #{centerId}</update>
+    <delete id="deleteCenter" parameterType="int">DELETE FROM TB_DR_CENTER WHERE CENTER_ID = #{centerId}</delete>
+    <insert id="insertDrillCenter">INSERT INTO TB_DR_DRILL_CENTER (DRILL_ID, CENTER_ID, ROLE_TYPE) VALUES (#{drillId}, #{centerId}, #{roleType})</insert>
+    <delete id="deleteDrillCenter" parameterType="int">DELETE FROM TB_DR_DRILL_CENTER WHERE DRILL_ID = #{drillId}</delete>
+
+    <select id="selectTasksByDrillId" parameterType="int" resultType="com.infraReport.dr.dto.DrDashboardDTO$TaskInfo">SELECT TASK_ID as taskId, DRILL_ID as drillId, TASK_NAME as taskName, TASK_ORDER as taskOrder, TASK_TYPE as taskType, PLAN_START_TIME as planStartTime, PLAN_END_TIME as planEndTime, ACTUAL_START_TIME as actualStartTime, ACTUAL_END_TIME as actualEndTime, ASSIGN_TEAM as assignTeam, STATUS as status, PROGRESS_RATE as progressRate, CREATE_USER_ID as createUserId, CREATE_DATE as createDate FROM TB_DR_TASK WHERE DRILL_ID = #{drillId} ORDER BY TASK_ORDER</select>
+    <select id="selectTaskById" parameterType="int" resultType="com.infraReport.dr.dto.DrDashboardDTO$TaskInfo">SELECT TASK_ID as taskId, DRILL_ID as drillId, TASK_NAME as taskName, TASK_ORDER as taskOrder, TASK_TYPE as taskType, PLAN_START_TIME as planStartTime, PLAN_END_TIME as planEndTime, ACTUAL_START_TIME as actualStartTime, ACTUAL_END_TIME as actualEndTime, ASSIGN_TEAM as assignTeam, STATUS as status, PROGRESS_RATE as progressRate, CREATE_USER_ID as createUserId, CREATE_DATE as createDate FROM TB_DR_TASK WHERE TASK_ID = #{taskId}</select>
+    <insert id="insertTask" parameterType="com.infraReport.dr.dto.DrDashboardDTO$TaskInfo" useGeneratedKeys="true" keyProperty="taskId">INSERT INTO TB_DR_TASK (DRILL_ID, TASK_NAME, TASK_ORDER, TASK_TYPE, PLAN_START_TIME, PLAN_END_TIME, ASSIGN_TEAM, CREATE_USER_ID) VALUES (#{drillId}, #{taskName}, #{taskOrder}, #{taskType}, #{planStartTime}, #{planEndTime}, #{assignTeam}, #{createUserId})</insert>
+    <update id="updateTask" parameterType="com.infraReport.dr.dto.DrDashboardDTO$TaskInfo">UPDATE TB_DR_TASK SET TASK_NAME = #{taskName}, TASK_TYPE = #{taskType}, PLAN_START_TIME = #{planStartTime}, PLAN_END_TIME = #{planEndTime}, ASSIGN_TEAM = #{assignTeam}, UPDATE_USER_ID = #{createUserId}, UPDATE_DATE = NOW() WHERE TASK_ID = #{taskId}</update>
+    <delete id="deleteTask" parameterType="int">DELETE FROM TB_DR_TASK WHERE TASK_ID = #{taskId}</delete>
+    <update id="updateTaskOrder">UPDATE TB_DR_TASK SET TASK_ORDER = #{taskOrder} WHERE TASK_ID = #{taskId}</update>
+    <update id="startTask" parameterType="int">UPDATE TB_DR_TASK SET STATUS = 'PROGRESS', ACTUAL_START_TIME = NOW(), UPDATE_DATE = NOW() WHERE TASK_ID = #{taskId}</update>
+    <update id="completeTask" parameterType="int">UPDATE TB_DR_TASK SET STATUS = 'COMPLETED', PROGRESS_RATE = 100, ACTUAL_END_TIME = NOW(), UPDATE_DATE = NOW() WHERE TASK_ID = #{taskId}</update>
+    <update id="updateTaskProgress">UPDATE TB_DR_TASK SET PROGRESS_RATE = #{progressRate}, UPDATE_DATE = NOW() WHERE TASK_ID = #{taskId}</update>
+
+    <select id="selectSubtasksByTaskId" parameterType="int" resultType="com.infraReport.dr.dto.DrDashboardDTO$SubtaskInfo">
+        SELECT SUBTASK_ID as subtaskId, TASK_ID as taskId, SUBTASK_NAME as subtaskName, SUBTASK_ORDER as subtaskOrder, 
+               PLAN_START_TIME as planStartTime, PLAN_END_TIME as planEndTime, ACTUAL_START_TIME as actualStartTime, ACTUAL_END_TIME as actualEndTime, 
+               ASSIGN_USER as assignUser, ASSIGN_USER_ID as assignUserId, STATUS as status, 
+               PROGRESS_RATE as progressRate, REMARK as remark, 
+               CREATE_USER_ID as createUserId, CREATE_DATE as createDate 
+        FROM TB_DR_SUBTASK WHERE TASK_ID = #{taskId} ORDER BY SUBTASK_ORDER
+    </select>
+    
+    <select id="selectSubtaskById" parameterType="int" resultType="com.infraReport.dr.dto.DrDashboardDTO$SubtaskInfo">
+        SELECT SUBTASK_ID as subtaskId, TASK_ID as taskId, SUBTASK_NAME as subtaskName, SUBTASK_ORDER as subtaskOrder, 
+               PLAN_START_TIME as planStartTime, PLAN_END_TIME as planEndTime, ACTUAL_START_TIME as actualStartTime, ACTUAL_END_TIME as actualEndTime, 
+               ASSIGN_USER as assignUser, ASSIGN_USER_ID as assignUserId, STATUS as status, 
+               PROGRESS_RATE as progressRate, REMARK as remark, 
+               CREATE_USER_ID as createUserId, CREATE_DATE as createDate 
+        FROM TB_DR_SUBTASK WHERE SUBTASK_ID = #{subtaskId}
+    </select>
+    
+    <insert id="insertSubtask" parameterType="com.infraReport.dr.dto.DrDashboardDTO$SubtaskInfo" useGeneratedKeys="true" keyProperty="subtaskId">
+        INSERT INTO TB_DR_SUBTASK (TASK_ID, SUBTASK_NAME, SUBTASK_ORDER, PLAN_START_TIME, PLAN_END_TIME, ASSIGN_USER, ASSIGN_USER_ID, PROGRESS_RATE, CREATE_USER_ID) 
+        VALUES (#{taskId}, #{subtaskName}, COALESCE((SELECT MAX(SUBTASK_ORDER) + 1 FROM TB_DR_SUBTASK s WHERE s.TASK_ID = #{taskId}), 1), #{planStartTime}, #{planEndTime}, #{assignUser}, #{assignUserId}, #{progressRate}, #{createUserId})
+    </insert>
+    
+    <update id="updateSubtask" parameterType="com.infraReport.dr.dto.DrDashboardDTO$SubtaskInfo">
+        UPDATE TB_DR_SUBTASK SET 
+            SUBTASK_NAME = #{subtaskName}, PLAN_START_TIME = #{planStartTime}, PLAN_END_TIME = #{planEndTime}, 
+            ASSIGN_USER = #{assignUser}, ASSIGN_USER_ID = #{assignUserId}, REMARK = #{remark}, 
+            PROGRESS_RATE = #{progressRate}, STATUS = #{status}, 
+            UPDATE_USER_ID = #{updateUserId}, UPDATE_DATE = NOW() 
+        WHERE SUBTASK_ID = #{subtaskId}
+    </update>
+
+    <select id="calculateTaskProgressRate" parameterType="int" resultType="int">
+        SELECT COALESCE(ROUND(AVG(PROGRESS_RATE)), 0) FROM TB_DR_SUBTASK WHERE TASK_ID = #{taskId}
+    </select>
+
+    <delete id="deleteSubtask" parameterType="int">DELETE FROM TB_DR_SUBTASK WHERE SUBTASK_ID = #{subtaskId}</delete>
+    <update id="updateSubtaskOrder">UPDATE TB_DR_SUBTASK SET SUBTASK_ORDER = #{subtaskOrder} WHERE SUBTASK_ID = #{subtaskId}</update>
+    <update id="startSubtask" parameterType="int">UPDATE TB_DR_SUBTASK SET STATUS = 'PROGRESS', ACTUAL_START_TIME = NOW(), UPDATE_DATE = NOW() WHERE SUBTASK_ID = #{subtaskId}</update>
+    <update id="completeSubtask" parameterType="int">UPDATE TB_DR_SUBTASK SET STATUS = 'COMPLETED', PROGRESS_RATE = 100, ACTUAL_END_TIME = NOW(), UPDATE_DATE = NOW() WHERE SUBTASK_ID = #{subtaskId}</update>
+    <select id="countCompletedSubtasks" parameterType="int" resultType="int">SELECT COUNT(*) FROM TB_DR_SUBTASK WHERE TASK_ID = #{taskId} AND STATUS = 'COMPLETED'</select>
+    <select id="countTotalSubtasks" parameterType="int" resultType="int">SELECT COUNT(*) FROM TB_DR_SUBTASK WHERE TASK_ID = #{taskId}</select>
+
+    <select id="selectTimelineByDrillId" parameterType="int" resultType="com.infraReport.dr.dto.DrDashboardDTO$TimelineEvent">SELECT TIMELINE_ID as timelineId, DRILL_ID as drillId, EVENT_TIME as eventTime, EVENT_TYPE as eventType, EVENT_TITLE as eventTitle, EVENT_DESC as eventDesc, CREATE_DATE as createDate FROM TB_DR_TIMELINE WHERE DRILL_ID = #{drillId} ORDER BY EVENT_TIME DESC</select>
+    <insert id="insertTimelineEvent" parameterType="com.infraReport.dr.dto.DrDashboardDTO$TimelineEvent">INSERT INTO TB_DR_TIMELINE (DRILL_ID, EVENT_TIME, EVENT_TYPE, EVENT_TITLE, EVENT_DESC) VALUES (#{drillId}, #{eventTime}, #{eventType}, #{eventTitle}, #{eventDesc})</insert>
+    <delete id="deleteTimelineEvent" parameterType="int">DELETE FROM TB_DR_TIMELINE WHERE TIMELINE_ID = #{timelineId}</delete>
+    <select id="selectRecoverySystemsByDrillId" parameterType="int" resultType="com.infraReport.dr.dto.DrDashboardDTO$RecoverySystemInfo">SELECT SYSTEM_ID as systemId, DRILL_ID as drillId, SYSTEM_NAME as systemName, SYSTEM_GROUP as systemGroup, RECOVERY_ORDER as recoveryOrder, STATUS as status, START_TIME as startTime, END_TIME as endTime, ASSIGN_USER as assignUser, REMARK as remark FROM TB_DR_RECOVERY_SYSTEM WHERE DRILL_ID = #{drillId} ORDER BY RECOVERY_ORDER</select>
+    <insert id="insertRecoverySystem" parameterType="com.infraReport.dr.dto.DrDashboardDTO$RecoverySystemInfo">INSERT INTO TB_DR_RECOVERY_SYSTEM (DRILL_ID, SYSTEM_NAME, SYSTEM_GROUP, RECOVERY_ORDER, ASSIGN_USER) VALUES (#{drillId}, #{systemName}, #{systemGroup}, #{recoveryOrder}, #{assignUser})</insert>
+    <update id="updateRecoverySystem" parameterType="com.infraReport.dr.dto.DrDashboardDTO$RecoverySystemInfo">UPDATE TB_DR_RECOVERY_SYSTEM SET SYSTEM_NAME = #{systemName}, SYSTEM_GROUP = #{systemGroup}, ASSIGN_USER = #{assignUser}, REMARK = #{remark}, UPDATE_DATE = NOW() WHERE SYSTEM_ID = #{systemId}</update>
+    <delete id="deleteRecoverySystem" parameterType="int">DELETE FROM TB_DR_RECOVERY_SYSTEM WHERE SYSTEM_ID = #{systemId}</delete>
+    <update id="updateRecoverySystemStatus">UPDATE TB_DR_RECOVERY_SYSTEM SET STATUS = #{status}, UPDATE_DATE = NOW() WHERE SYSTEM_ID = #{systemId}</update>
+    <update id="startRecoverySystem" parameterType="int">UPDATE TB_DR_RECOVERY_SYSTEM SET STATUS = 'PROGRESS', START_TIME = NOW(), UPDATE_DATE = NOW() WHERE SYSTEM_ID = #{systemId}</update>
+    <update id="completeRecoverySystem" parameterType="int">UPDATE TB_DR_RECOVERY_SYSTEM SET STATUS = 'COMPLETED', END_TIME = NOW(), UPDATE_DATE = NOW() WHERE SYSTEM_ID = #{systemId}</update>
+    <select id="selectRecoverySystemStats" parameterType="int" resultType="com.infraReport.dr.dto.DrDashboardDTO$StatInfo">SELECT COUNT(*) as total, SUM(CASE WHEN STATUS = 'COMPLETED' THEN 1 ELSE 0 END) as completed, SUM(CASE WHEN STATUS = 'PROGRESS' THEN 1 ELSE 0 END) as inProgress, SUM(CASE WHEN STATUS = 'WAITING' THEN 1 ELSE 0 END) as waiting, SUM(CASE WHEN STATUS = 'FAILED' THEN 1 ELSE 0 END) as failed, ROUND(SUM(CASE WHEN STATUS = 'COMPLETED' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as progressRate FROM TB_DR_RECOVERY_SYSTEM WHERE DRILL_ID = #{drillId}</select>
+    <select id="selectBusinessChecksByDrillId" parameterType="int" resultType="com.infraReport.dr.dto.DrDashboardDTO$BusinessCheckInfo">SELECT CHECK_ID as checkId, DRILL_ID as drillId, CHECK_NAME as checkName, CHECK_GROUP as checkGroup, CHECK_ORDER as checkOrder, CHECK_TYPE as checkType, STATUS as status, CHECK_TIME as checkTime, ASSIGN_USER as assignUser, REMARK as remark FROM TB_DR_BUSINESS_CHECK WHERE DRILL_ID = #{drillId} ORDER BY CHECK_ORDER</select>
+    <insert id="insertBusinessCheck" parameterType="com.infraReport.dr.dto.DrDashboardDTO$BusinessCheckInfo">INSERT INTO TB_DR_BUSINESS_CHECK (DRILL_ID, CHECK_NAME, CHECK_GROUP, CHECK_ORDER, CHECK_TYPE, ASSIGN_USER) VALUES (#{drillId}, #{checkName}, #{checkGroup}, #{checkOrder}, #{checkType}, #{assignUser})</insert>
+    <update id="updateBusinessCheck" parameterType="com.infraReport.dr.dto.DrDashboardDTO$BusinessCheckInfo">UPDATE TB_DR_BUSINESS_CHECK SET CHECK_NAME = #{checkName}, CHECK_GROUP = #{checkGroup}, CHECK_TYPE = #{checkType}, ASSIGN_USER = #{assignUser}, REMARK = #{remark}, UPDATE_DATE = NOW() WHERE CHECK_ID = #{checkId}</update>
+    <delete id="deleteBusinessCheck" parameterType="int">DELETE FROM TB_DR_BUSINESS_CHECK WHERE CHECK_ID = #{checkId}</delete>
+    <update id="updateBusinessCheckStatus">UPDATE TB_DR_BUSINESS_CHECK SET STATUS = #{status}, CHECK_TIME = NOW(), UPDATE_DATE = NOW() WHERE CHECK_ID = #{checkId}</update>
+    <select id="selectBusinessCheckStats" parameterType="int" resultType="com.infraReport.dr.dto.DrDashboardDTO$StatInfo">SELECT COUNT(*) as total, SUM(CASE WHEN STATUS = 'PASS' THEN 1 ELSE 0 END) as completed, SUM(CASE WHEN STATUS = 'WAITING' THEN 1 ELSE 0 END) as waiting, SUM(CASE WHEN STATUS = 'FAIL' THEN 1 ELSE 0 END) as failed, ROUND(SUM(CASE WHEN STATUS = 'PASS' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as progressRate FROM TB_DR_BUSINESS_CHECK WHERE DRILL_ID = #{drillId}</select>
+
+</mapper>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+ 
+<tiles-definitions>
+
+	<definition name="layouts-tiles" template="/WEB-INF/tiles/layout/layout-basic.jsp">
+	  	<put-attribute name="tiles_head" value="/WEB-INF/tiles/layout/head.jsp" />
+		<put-attribute name="tiles_header"	value="/WEB-INF/tiles/layout/header.jsp" />
+	  	<put-attribute name="tiles_footer"	value="/WEB-INF/tiles/layout/footer.jsp" />
+	</definition>
+	
+	<definition name="main-layouts-tiles" template="/WEB-INF/tiles/layout/layout-basic.jsp">
+		<put-attribute name="tiles_head" value="" />
+		<put-attribute name="tiles_header"	value="" />
+	  	<put-attribute name="tiles_footer"	value="" />
+	</definition>
+	
+	<definition name="inner-layouts-tiles" template="/WEB-INF/tiles/layout/layout-basic.jsp">
+		<put-attribute name="tiles_head" value="/WEB-INF/tiles/layout/head.jsp" />
+		<put-attribute name="tiles_header"	value="" />
+	  	<put-attribute name="tiles_footer"	value="" />
+	</definition>
+	
+	<!-- 로그인/회원가입 (레이아웃 없음) -->
+	<definition name="auth/login.tiles" extends="main-layouts-tiles">
+	    <put-attribute name="tiles_content" value="/WEB-INF/views/auth/login.jsp"/>
+	</definition>
+	
+	<definition name="auth/register.tiles" extends="main-layouts-tiles">
+	    <put-attribute name="tiles_content" value="/WEB-INF/views/auth/register.jsp"/>
+	</definition>
+	
+	<definition name="auth/mypage.tiles" extends="main-layouts-tiles">
+	    <put-attribute name="tiles_content" value="/WEB-INF/views/auth/mypage.jsp"/>
+	</definition>
+	
+	<!-- 작업 관리 (레이아웃 없음) -->
+	<definition name="work/user-process.tiles" extends="main-layouts-tiles">
+	    <put-attribute name="tiles_content" value="/WEB-INF/views/work/user-process.jsp"/>
+	</definition>
+	
+	<definition name="work/admin-process.tiles" extends="main-layouts-tiles">
+	    <put-attribute name="tiles_content" value="/WEB-INF/views/work/admin-process.jsp"/>
+	</definition>
+	
+	<!-- 에러 페이지 -->
+	<definition name="common/403.tiles" extends="main-layouts-tiles">
+	    <put-attribute name="tiles_content" value="/WEB-INF/views/common/403.jsp"/>
+	</definition>
+	
+	<!-- 기존 보고서 관련 -->
+	<definition name="report/dailyReport.tiles" extends="main-layouts-tiles">
+	    <put-attribute name="tiles_content" value="/WEB-INF/views/report/dailyReport.jsp"/>
+	</definition>
+	
+	<definition name="report/mainReport.tiles" extends="layouts-tiles">
+	    <put-attribute name="tiles_content" value="/WEB-INF/views/report/mainReport.jsp"/>
+	</definition>
+	
+	<!-- DR 훈련 관련 (독립 레이아웃) -->
+	<definition name="dr/drDashboard.tiles" extends="main-layouts-tiles">
+	    <put-attribute name="tiles_content" value="/WEB-INF/views/dr/drDashboard.jsp"/>
+	</definition>
+	
+	<definition name="dr/drillDashboard.tiles" extends="main-layouts-tiles">
+	    <put-attribute name="tiles_content" value="/WEB-INF/views/dr/drillDashboard.jsp"/>
+	</definition>
+	
+	<definition name="dr/drillManage.tiles" extends="layouts-tiles">
+	    <put-attribute name="tiles_content" value="/WEB-INF/views/dr/drillManage.jsp"/>
+	</definition>
+	
+	<definition name="*/*.tiles" extends="inner-layouts-tiles">
+	    <put-attribute name="tiles_content" value="/WEB-INF/views/{1}/{2}.jsp"/>
+	</definition>
+
+</tiles-definitions>

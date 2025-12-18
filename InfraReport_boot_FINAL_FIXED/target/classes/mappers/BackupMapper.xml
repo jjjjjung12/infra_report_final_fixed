@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.infraReport.backup.dao.BackupDAO">
+
+	<!-- 백업 관리대장 조회 -->
+    <select id="selectBackupResultList" resultType="com.infraReport.backup.dto.BackupDTO">
+        SELECT BACKUP_ID AS REPORT_ID				/* 백업 ID		*/
+		     , BACKUP_DATE AS REPORT_DATE           /* 백업 일자		*/
+		     , SERVICE_NAME                         /* 서비스 명		*/
+		     , BACKUP_TYPE                          /* 백업 유형		*/
+		     , BACKUP_LIBRARY                       /* 백업 장비		*/
+		     , BACKUP_CATEGORY                      /* 백업 카테고리	*/
+		     , BACKUP_LEVEL                         /* 백업 레벨		*/
+		     , BACKUP_STATUS                        /* 백업 상태		*/
+		     , BACKUP_STATUS AS STATUS              /* 상태			*/
+		     , START_TIME                           /* 시작시간		*/
+		     , END_TIME                             /* 종료시간		*/
+		     , REMARKS                              /* 비고			*/
+		     , CREATED_DATE                         /* 등록일시		*/
+		     , UPDATED_DATE                         /* 수정일시		*/
+		     , CREATED_BY                   		/* 등록자			*/
+             , UPDATED_BY                   		/* 수정자			*/
+		  FROM TB_BACKUP_RESULT
+         WHERE 1=1
+         
+         <!-- 날짜 조건 -->
+         <if test="startReportDate != null and endReportDate != null and startReportDate != '' and endReportDate != ''">
+	        AND BACKUP_DATE BETWEEN #{startReportDate} AND #{endReportDate}
+	     </if>
+	     <if test="(startReportDate != null and startReportDate != '') and (endReportDate == null or endReportDate == '')">
+	        AND BACKUP_DATE <![CDATA[>=]]> #{startReportDate}
+	     </if>
+	     <if test="(endReportDate != null and endReportDate != '') and (startReportDate == null or startReportDate == '')">
+	        AND BACKUP_DATE <![CDATA[<=]]> #{endReportDate}
+	     </if>
+	     
+	     <!-- 검색 필드 조건 -->
+	     <choose>
+	        <!-- 특정 필드 검색 -->
+	        <when test="searchField != null and searchField != '' and searchKeyword != null and searchKeyword != ''">
+	            AND
+	            <choose>
+	                <when test="searchField == 'SERVICE_NAME'"> SERVICE_NAME LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'BACKUP_TYPE'"> BACKUP_TYPE LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'BACKUP_LIBRARY'"> BACKUP_LIBRARY LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'BACKUP_CATEGORY'"> BACKUP_CATEGORY LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'BACKUP_STATUS'"> BACKUP_STATUS LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'REMARKS'"> REMARKS LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'CREATED_BY'"> CREATED_BY LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'UPDATED_BY'"> UPDATED_BY LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	            </choose>
+	        </when>
+	
+	        <!-- 전체 검색 -->
+	        <when test="(searchField == null or searchField == '') and searchKeyword != null and searchKeyword != ''">
+	            AND (
+	                   SERVICE_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR BACKUP_TYPE LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR BACKUP_LIBRARY LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR BACKUP_CATEGORY LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR BACKUP_STATUS LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR REMARKS LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR CREATED_BY LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR UPDATED_BY LIKE CONCAT('%', #{searchKeyword}, '%')
+	            )
+	        </when>
+	     </choose>
+         
+         <!-- 정렬 조건 -->
+		 <choose>
+	        <when test="sortField != null and sortField != ''">
+	            ORDER BY ${sortField}
+	            <if test="sortOrder != null and sortOrder != ''">
+	                ${sortOrder}
+	            </if>
+	        </when>
+	        <otherwise>
+	            ORDER BY CREATED_DATE DESC
+	        </otherwise>
+	     </choose>
+    </select>
+    
+    <!-- 백업 결과 등록 -->
+    <insert id="insertBackupResult" parameterType="com.infraReport.backup.dto.BackupDTO">
+	    INSERT INTO TB_BACKUP_RESULT (
+			  BACKUP_DATE
+			, SERVICE_NAME
+			, BACKUP_TYPE
+			, BACKUP_LIBRARY
+			, BACKUP_CATEGORY
+			, BACKUP_LEVEL
+			, BACKUP_STATUS
+			, REMARKS
+			, CREATED_BY
+		) VALUES (
+			  #{reportDate}
+			, #{serviceName}
+			, #{backupType}
+			, #{backupLibrary}
+			, #{backupCategory}
+			, #{backupLevel}
+			, #{backupStatus}
+			, #{remarks}
+			, #{createdBy}
+		)
+	</insert>
+	
+	<!-- 백업 결과 상세 조회 -->
+    <select id="selectBackupResultById" resultType="com.infraReport.backup.dto.BackupDTO">
+        SELECT BACKUP_ID AS REPORT_ID				/* 백업 ID		*/
+		     , BACKUP_DATE AS REPORT_DATE          	/* 백업 일자		*/
+		     , SERVICE_NAME                         /* 서비스 명		*/
+		     , BACKUP_TYPE                          /* 백업 유형		*/
+		     , BACKUP_LIBRARY                       /* 백업 장비		*/
+		     , BACKUP_CATEGORY                      /* 백업 카테고리	*/
+		     , BACKUP_LEVEL                         /* 백업 레벨		*/
+		     , BACKUP_STATUS                        /* 백업 상태		*/
+		     , BACKUP_STATUS AS STATUS              /* 상태			*/
+		     , START_TIME                           /* 시작시간		*/
+		     , END_TIME                             /* 종료시간		*/
+		     , REMARKS                              /* 비고			*/
+		     , CREATED_DATE                         /* 등록일시		*/
+		     , UPDATED_DATE                         /* 수정일시		*/
+		     , CREATED_BY                   		/* 등록자			*/
+             , UPDATED_BY                   		/* 수정자			*/
+		  FROM TB_BACKUP_RESULT
+		 WHERE 1=1
+           AND BACKUP_ID = #{reportId}
+    </select>
+    
+    <!-- 백업 결과 수정 -->
+    <update id="updateBackupResult" parameterType="com.infraReport.backup.dto.BackupDTO">
+    	UPDATE TB_BACKUP_RESULT 
+		  SET SERVICE_NAME = #{serviceName}
+		    , BACKUP_TYPE = #{backupType}
+		    , BACKUP_LIBRARY = #{backupLibrary}
+		    , BACKUP_CATEGORY = #{backupCategory}
+		    , BACKUP_LEVEL = #{backupLevel}
+		    , BACKUP_STATUS = #{backupStatus}
+		    , REMARKS = #{remarks}
+		    , UPDATED_BY = #{updatedBy} 
+		    , UPDATED_DATE = CURRENT_TIMESTAMP
+<!-- 		    , BACKUP_DATE = #{reportDate} -->
+		 WHERE BACKUP_ID = #{reportId}
+    </update>
+    
+    <!-- 백업 결과 삭제 -->
+    <delete id="deleteBackupResult" parameterType="Integer">
+    	DELETE FROM TB_BACKUP_RESULT 
+    	 WHERE BACKUP_ID = #{reportId}
+    </delete>
+    
+</mapper>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.infraReport.resource.dao.ResourceDAO">
+
+	<!-- 서버별 자원 사용 현황 조회 -->
+    <select id="selectResourceUsageList" resultType="com.infraReport.resource.dto.ResourceDTO">
+         SELECT USAGE_ID AS REPORT_ID			/* 자원 ID		*/
+		      , MONITOR_DATE AS REPORT_DATE     /* 일자			*/
+		      , SERVER_NAME                 	/* 서버명			*/
+		      , RESOURCE_TYPE               	/* 자원 유형		*/
+		      , USAGE_PERCENT               	/* 사용률			*/
+		      , TOTAL_AMOUNT                	/* 총 용량		*/
+		      , USED_AMOUNT                 	/* 사용 용량		*/
+		      , AVAILABLE_AMOUNT            	/* 가용 용량		*/
+		      , STATUS                      	/* 상태			*/
+		      , STATUS AS RESOURCE_STATUS       /* 상태			*/
+		      , MONITORING_TIME             	/* 모니터링 시간	*/
+		      , CREATED_DATE                	/* 등록일시		*/
+		      , CREATED_BY                  	/* 등록자			*/
+		   FROM TB_RESOURCE_USAGE
+          WHERE 1=1
+         
+         <!-- 날짜 조건 -->
+         <if test="startReportDate != null and endReportDate != null and startReportDate != '' and endReportDate != ''">
+	        AND MONITOR_DATE BETWEEN #{startReportDate} AND #{endReportDate}
+	     </if>
+	     <if test="(startReportDate != null and startReportDate != '') and (endReportDate == null or endReportDate == '')">
+	        AND MONITOR_DATE <![CDATA[>=]]> #{startReportDate}
+	     </if>
+	     <if test="(endReportDate != null and endReportDate != '') and (startReportDate == null or startReportDate == '')">
+	        AND MONITOR_DATE <![CDATA[<=]]> #{endReportDate}
+	     </if>
+	     
+	     <!-- 검색 필드 조건 -->
+	     <choose>
+	        <!-- 특정 필드 검색 -->
+	        <when test="searchField != null and searchField != '' and searchKeyword != null and searchKeyword != ''">
+	            AND
+	            <choose>
+	                <when test="searchField == 'SERVER_NAME'"> SERVER_NAME LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'RESOURCE_TYPE'"> RESOURCE_TYPE LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'STATUS'"> STATUS LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'CREATED_BY'"> CREATED_BY LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	            </choose>
+	        </when>
+	
+	        <!-- 전체 검색 -->
+	        <when test="(searchField == null or searchField == '') and searchKeyword != null and searchKeyword != ''">
+	            AND (
+	                   SERVER_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR RESOURCE_TYPE LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR STATUS LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR CREATED_BY LIKE CONCAT('%', #{searchKeyword}, '%')
+	            )
+	        </when>
+	     </choose>
+         
+         <!-- 정렬 조건 -->
+		 <choose>
+	        <when test="sortField != null and sortField != ''">
+	            ORDER BY ${sortField}
+	            <if test="sortOrder != null and sortOrder != ''">
+	                ${sortOrder}
+	            </if>
+	        </when>
+	        <otherwise>
+	            ORDER BY CREATED_DATE DESC
+	        </otherwise>
+	     </choose>
+    </select>
+    
+    <!-- 서버별 자원 사용 등록 -->
+    <insert id="insertResourceUsage" parameterType="com.infraReport.resource.dto.ResourceDTO">
+	    INSERT INTO TB_RESOURCE_USAGE (
+			  MONITOR_DATE
+			, SERVER_NAME
+			, RESOURCE_TYPE
+			, USAGE_PERCENT
+			, TOTAL_AMOUNT
+			, USED_AMOUNT
+			, AVAILABLE_AMOUNT
+			, STATUS
+			, MONITORING_TIME
+			, CREATED_BY
+		) VALUES (
+			  #{reportDate}
+			, #{serverName}
+			, #{resourceType}
+			, #{usagePercent}
+			, #{totalAmount}
+			, #{usedAmount}
+			, #{availableAmount}
+			, #{status}
+			, #{monitoringTime}
+			, #{createdBy}
+		)
+	</insert>
+
+</mapper>

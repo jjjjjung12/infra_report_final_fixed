@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.infraReport.report.dao.ReportDAO">
+
+	<!-- 업무 유형 별 통계 조회 -->
+	<select id="selectDailyReportStats" resultType="com.infraReport.report.dto.DailyReportStatDTO">
+		SELECT COUNT(*) as total_tasks																				/* 전체 건수		*/
+		     , SUM(CASE WHEN STATUS = '정상' THEN 1 ELSE 0 END) as normal_count									   	/* 정상 상태		*/
+		     , SUM(CASE WHEN STATUS = '주의' THEN 1 ELSE 0 END) as warning_count                                    	/* 주의 상태		*/
+		     , SUM(CASE WHEN STATUS IN ('장애', '위험') THEN 1 ELSE 0 END) as error_count                             	/* 위험 상태		*/
+		     , SUM(CASE WHEN TASK_TYPE = '일상점검' THEN 1 ELSE 0 END) as daily_check_count                          	/* 일상 점검		*/
+		     , SUM(CASE WHEN TASK_TYPE = '보안점검' THEN 1 ELSE 0 END) as security_check_count                       	/* 보안 점검		*/
+		     , SUM(CASE WHEN TASK_TYPE = '시스템관리' THEN 1 ELSE 0 END) as system_mgmt_count                         	/* 시스템 관리		*/
+		     , SUM(CASE WHEN TASK_TYPE = '특별점검' THEN 1 ELSE 0 END) as special_check_count                        	/* 특별 점검		*/
+		     , SUM(CASE WHEN TASK_TYPE = '정기점검' THEN 1 ELSE 0 END) as regular_check_count                        	/* 정기 점검		*/
+		     , SUM(CASE WHEN TASK_TYPE = '장애대응' THEN 1 ELSE 0 END) as incident                                   	/* 장애 대응		*/
+		     , SUM(CASE WHEN TASK_TYPE = '작업' THEN 1 ELSE 0 END) as work                                          	/* 작업			*/
+		     , CASE WHEN COUNT(*) > 0 THEN (SUM(CASE WHEN STATUS = '정상' THEN 1 ELSE 0 END) / COUNT(*) * 100.0)    	/* 정상 상태 비율	*/
+		            ELSE 0 
+		       END AS normal_rate
+		  FROM TB_DAILY_REPORT 
+		 WHERE 1=1
+	</select>
+
+	<!-- 공통 코드 조회 -->
+	<select id="selectCodeListByType" resultType="com.infraReport.report.dto.CommonCodeDTO">
+		SELECT CD_TYPE						/* 코드 타입	*/
+		     , CD_TYPE_NAME                 /* 코드타입명	*/
+		     , CD_VAL                       /* 코드값		*/
+		     , CD_NAME                      /* 코드명		*/
+		     , USE_YN                       /* 사용여부	*/
+		     , SORT_ORDER                   /* 정렬순서	*/
+		     , CREATED_DATE                 /* 등록일시	*/
+		     , UPDATED_DATE                 /* 수정일시	*/
+		  FROM TB_COMMON_CODE 
+		 WHERE CD_TYPE = #{cdType}
+		   AND USE_YN = 'Y' 
+	</select>
+	
+</mapper>

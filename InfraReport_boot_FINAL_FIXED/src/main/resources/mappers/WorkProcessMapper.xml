@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.infraReport.work.dao.WorkProcessDAO">
+
+    <resultMap id="workProjectResultMap" type="com.infraReport.work.domain.WorkProject">
+        <id property="projectId" column="PROJECT_ID"/>
+        <result property="userId" column="USER_ID"/>
+        <result property="projectName" column="PROJECT_NAME"/>
+        <result property="workContent" column="WORK_CONTENT"/>
+        <result property="workLocation" column="WORK_LOCATION"/>
+        <result property="startDate" column="START_DATE"/>
+        <result property="endDate" column="END_DATE"/>
+        <result property="currentStage" column="CURRENT_STAGE"/>
+        <result property="projectStatus" column="PROJECT_STATUS"/>
+        <result property="createdDate" column="CREATED_DATE"/>
+        <result property="updatedDate" column="UPDATED_DATE"/>
+        <result property="userName" column="USER_NAME"/>
+        <result property="companyName" column="COMPANY_NAME"/>
+    </resultMap>
+
+    <resultMap id="stageDocumentResultMap" type="com.infraReport.work.domain.StageDocument">
+        <id property="documentId" column="DOCUMENT_ID"/>
+        <result property="projectId" column="PROJECT_ID"/>
+        <result property="stage" column="STAGE"/>
+        <result property="documentType" column="DOCUMENT_TYPE"/>
+        <result property="documentName" column="DOCUMENT_NAME"/>
+        <result property="filePath" column="FILE_PATH"/>
+        <result property="fileName" column="FILE_NAME"/>
+        <result property="originalFileName" column="ORIGINAL_FILE_NAME"/>
+        <result property="uploadDate" column="UPLOAD_DATE"/>
+        <result property="documentStatus" column="DOCUMENT_STATUS"/>
+        <result property="approverId" column="APPROVER_ID"/>
+        <result property="approvalDate" column="APPROVAL_DATE"/>
+        <result property="rejectReason" column="REJECT_REASON"/>
+        <result property="approverName" column="APPROVER_NAME"/>
+        <result property="projectName" column="PROJECT_NAME"/>
+        <result property="userName" column="USER_NAME"/>
+    </resultMap>
+
+    <resultMap id="workDocumentTemplateResultMap" type="com.infraReport.work.domain.WorkDocumentTemplate">
+        <id property="templateId" column="TEMPLATE_ID"/>
+        <result property="stage" column="STAGE"/>
+        <result property="documentType" column="DOCUMENT_TYPE"/>
+        <result property="documentName" column="DOCUMENT_NAME"/>
+        <result property="templateFilePath" column="TEMPLATE_FILE_PATH"/>
+        <result property="templateFileName" column="TEMPLATE_FILE_NAME"/>
+        <result property="sortOrder" column="SORT_ORDER"/>
+        <result property="isRequired" column="IS_REQUIRED"/>
+        <result property="description" column="DESCRIPTION"/>
+    </resultMap>
+
+    <select id="selectAllProjects" resultMap="workProjectResultMap">
+        SELECT p.*, u.USER_NAME, u.COMPANY_NAME FROM TB_WORK_PROJECT p LEFT JOIN TB_USER u ON p.USER_ID = u.USER_ID ORDER BY p.CREATED_DATE DESC
+    </select>
+    
+    <select id="selectProjectsByUserId" resultMap="workProjectResultMap">
+        SELECT p.*, u.USER_NAME, u.COMPANY_NAME FROM TB_WORK_PROJECT p LEFT JOIN TB_USER u ON p.USER_ID = u.USER_ID WHERE p.USER_ID = #{userId} ORDER BY p.CREATED_DATE DESC
+    </select>
+    
+    <select id="selectProjectById" resultMap="workProjectResultMap">
+        SELECT p.*, u.USER_NAME, u.COMPANY_NAME FROM TB_WORK_PROJECT p LEFT JOIN TB_USER u ON p.USER_ID = u.USER_ID WHERE p.PROJECT_ID = #{projectId}
+    </select>
+    
+    <insert id="insertProject" parameterType="com.infraReport.work.domain.WorkProject" useGeneratedKeys="true" keyProperty="projectId">
+        INSERT INTO TB_WORK_PROJECT (USER_ID, PROJECT_NAME, WORK_CONTENT, WORK_LOCATION, START_DATE, END_DATE, CURRENT_STAGE, PROJECT_STATUS)
+        VALUES (#{userId}, #{projectName}, #{workContent}, #{workLocation}, #{startDate}, #{endDate}, #{currentStage}, #{projectStatus})
+    </insert>
+    
+    <update id="updateProject" parameterType="com.infraReport.work.domain.WorkProject">
+        UPDATE TB_WORK_PROJECT SET PROJECT_NAME=#{projectName}, WORK_CONTENT=#{workContent}, WORK_LOCATION=#{workLocation}, START_DATE=#{startDate}, END_DATE=#{endDate} WHERE PROJECT_ID=#{projectId}
+    </update>
+    
+    <update id="updateProjectStage">UPDATE TB_WORK_PROJECT SET CURRENT_STAGE = #{stage} WHERE PROJECT_ID = #{projectId}</update>
+    
+    <update id="updateProjectStatus">UPDATE TB_WORK_PROJECT SET PROJECT_STATUS = #{status} WHERE PROJECT_ID = #{projectId}</update>
+
+    <select id="selectDocumentsByProjectId" resultMap="stageDocumentResultMap">
+        SELECT d.*, u.USER_NAME AS APPROVER_NAME FROM TB_STAGE_DOCUMENT d LEFT JOIN TB_USER u ON d.APPROVER_ID = u.USER_ID WHERE d.PROJECT_ID = #{projectId} ORDER BY d.STAGE, d.DOCUMENT_ID
+    </select>
+    
+    <select id="selectDocumentsByProjectIdAndStage" resultMap="stageDocumentResultMap">
+        SELECT d.*, u.USER_NAME AS APPROVER_NAME FROM TB_STAGE_DOCUMENT d LEFT JOIN TB_USER u ON d.APPROVER_ID = u.USER_ID WHERE d.PROJECT_ID = #{projectId} AND d.STAGE = #{stage} ORDER BY d.DOCUMENT_ID
+    </select>
+    
+    <select id="selectPendingDocuments" resultMap="stageDocumentResultMap">
+        SELECT d.*, p.PROJECT_NAME, u.USER_NAME FROM TB_STAGE_DOCUMENT d LEFT JOIN TB_WORK_PROJECT p ON d.PROJECT_ID = p.PROJECT_ID LEFT JOIN TB_USER u ON p.USER_ID = u.USER_ID WHERE d.DOCUMENT_STATUS = 'PENDING' ORDER BY d.UPLOAD_DATE DESC
+    </select>
+    <select id="selectDocumentById" resultMap="stageDocumentResultMap">
+        SELECT d.*, u.USER_NAME AS APPROVER_NAME, p.PROJECT_NAME, u2.USER_NAME AS USER_NAME FROM TB_STAGE_DOCUMENT d LEFT JOIN TB_USER u ON d.APPROVER_ID = u.USER_ID LEFT JOIN TB_WORK_PROJECT p ON d.PROJECT_ID = p.PROJECT_ID LEFT JOIN TB_USER u2 ON p.USER_ID = u2.USER_ID WHERE d.DOCUMENT_ID = #{documentId}
+    </select>
+    
+    <insert id="insertDocument">
+        INSERT INTO TB_STAGE_DOCUMENT (PROJECT_ID, STAGE, DOCUMENT_TYPE, DOCUMENT_NAME, DOCUMENT_STATUS) VALUES (#{projectId}, #{stage}, #{documentType}, #{documentName}, #{documentStatus})
+    </insert>
+    
+    <update id="updateDocumentFile">
+        UPDATE TB_STAGE_DOCUMENT SET FILE_PATH=#{filePath}, FILE_NAME=#{fileName}, ORIGINAL_FILE_NAME=#{originalFileName}, UPLOAD_DATE=NOW(), DOCUMENT_STATUS='PENDING' WHERE DOCUMENT_ID=#{documentId}
+    </update>
+    
+    <update id="updateDocumentStatus">
+        UPDATE TB_STAGE_DOCUMENT SET DOCUMENT_STATUS=#{status}, APPROVER_ID=#{approverId}, APPROVAL_DATE=NOW(), REJECT_REASON=#{reason} WHERE DOCUMENT_ID=#{documentId}
+    </update>
+    
+    <select id="countApprovedDocumentsByStage" resultType="int">
+        SELECT COUNT(*) FROM TB_STAGE_DOCUMENT WHERE PROJECT_ID = #{projectId} AND STAGE = #{stage} AND DOCUMENT_STATUS = 'APPROVED'
+    </select>
+    <select id="countTotalDocumentsByStage" resultType="int">
+        SELECT COUNT(*) FROM TB_STAGE_DOCUMENT WHERE PROJECT_ID = #{projectId} AND STAGE = #{stage}
+    </select>
+    
+    <select id="isStageAllApproved" resultType="boolean">
+        SELECT CASE WHEN COUNT(*) = 0 THEN false WHEN COUNT(*) = SUM(CASE WHEN DOCUMENT_STATUS = 'APPROVED' THEN 1 ELSE 0 END) THEN true ELSE false END FROM TB_STAGE_DOCUMENT WHERE PROJECT_ID = #{projectId} AND STAGE = #{stage}
+    </select>
+
+    <select id="selectTemplatesByStage" resultMap="workDocumentTemplateResultMap">
+        SELECT * FROM TB_WORK_DOCUMENT_TEMPLATE WHERE STAGE = #{stage} ORDER BY SORT_ORDER
+    </select>
+    
+    <select id="selectAllTemplates" resultMap="workDocumentTemplateResultMap">
+        SELECT * FROM TB_WORK_DOCUMENT_TEMPLATE ORDER BY STAGE, SORT_ORDER
+    </select>
+
+    <insert id="insertApprovalHistory">
+        INSERT INTO TB_STAGE_APPROVAL_HISTORY (PROJECT_ID, STAGE, APPROVAL_STATUS, APPROVER_ID, COMMENTS) VALUES (#{projectId}, #{stage}, #{status}, #{approverId}, #{comments})
+    </insert>
+    
+    <insert id="insertApprovalHistoryWithDocument">
+        INSERT INTO TB_STAGE_APPROVAL_HISTORY (PROJECT_ID, DOCUMENT_ID, STAGE, APPROVAL_STATUS, APPROVER_ID, COMMENTS) VALUES (#{projectId}, #{documentId}, #{stage}, #{status}, #{approverId}, #{comments})
+    </insert>
+    
+    <select id="selectApprovalHistory" resultType="map">
+        SELECT h.*, p.PROJECT_NAME, u1.USER_NAME, u2.USER_NAME AS APPROVER_NAME, d.DOCUMENT_NAME FROM TB_STAGE_APPROVAL_HISTORY h LEFT JOIN TB_WORK_PROJECT p ON h.PROJECT_ID = p.PROJECT_ID LEFT JOIN TB_USER u1 ON p.USER_ID = u1.USER_ID LEFT JOIN TB_USER u2 ON h.APPROVER_ID = u2.USER_ID LEFT JOIN TB_STAGE_DOCUMENT d ON h.DOCUMENT_ID = d.DOCUMENT_ID ORDER BY h.APPROVAL_DATE DESC LIMIT 50
+    </select>
+    <select id="selectApprovalHistoryByProjectId" resultType="map">
+        SELECT h.*, u.USER_NAME AS APPROVER_NAME, d.DOCUMENT_NAME FROM TB_STAGE_APPROVAL_HISTORY h LEFT JOIN TB_USER u ON h.APPROVER_ID = u.USER_ID LEFT JOIN TB_STAGE_DOCUMENT d ON h.DOCUMENT_ID = d.DOCUMENT_ID WHERE h.PROJECT_ID = #{projectId} ORDER BY h.APPROVAL_DATE DESC
+    </select>
+
+    <insert id="insertTemplate" parameterType="com.infraReport.work.domain.WorkDocumentTemplate">
+        INSERT INTO TB_WORK_DOCUMENT_TEMPLATE (STAGE, DOCUMENT_TYPE, DOCUMENT_NAME, TEMPLATE_FILE_PATH, TEMPLATE_FILE_NAME, IS_REQUIRED, SORT_ORDER, DESCRIPTION) 
+        VALUES (#{stage}, #{documentType}, #{documentName}, #{templateFilePath}, #{templateFileName}, #{isRequired}, 99, '관리자 업로드')
+    </insert>
+	
+	<select id="selectTemplateById" parameterType="long" resultMap="workDocumentTemplateResultMap">
+        SELECT * FROM TB_WORK_DOCUMENT_TEMPLATE WHERE TEMPLATE_ID = #{templateId}
+    </select>
+    
+    <delete id="deleteDocument" parameterType="long">
+        DELETE FROM TB_STAGE_DOCUMENT WHERE DOCUMENT_ID = #{documentId}
+    </delete>
+
+	<delete id="deleteProject" parameterType="long">
+        DELETE FROM TB_WORK_PROJECT WHERE PROJECT_ID = #{projectId}
+    </delete>
+
+    <delete id="deleteDocumentsByProjectId" parameterType="long">
+        DELETE FROM TB_STAGE_DOCUMENT WHERE PROJECT_ID = #{projectId}
+    </delete>
+
+    <delete id="deleteApprovalHistoryByProjectId" parameterType="long">
+        DELETE FROM TB_STAGE_APPROVAL_HISTORY WHERE PROJECT_ID = #{projectId}
+    </delete>
+</mapper>

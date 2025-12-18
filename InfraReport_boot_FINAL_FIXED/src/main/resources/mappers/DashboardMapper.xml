@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.infraReport.dashboard.dao.DashboardDAO">
+
+    <!-- 일일 업무 통계 조회 -->
+    <select id="getTodayTaskStats" resultType="com.infraReport.dashboard.dto.DashboardDTO">
+        SELECT 
+            COUNT(*) AS totalTasks,
+            SUM(CASE WHEN STATUS = '정상' THEN 1 ELSE 0 END) AS completedTasks,
+            SUM(CASE WHEN STATUS != '정상' THEN 1 ELSE 0 END) AS pendingTasks,
+            CONCAT(
+                ROUND(SUM(CASE WHEN STATUS = '정상' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1), 
+                '%'
+            ) AS completionRate
+        FROM TB_DAILY_REPORT
+        WHERE REPORT_DATE = CURDATE()
+    </select>
+
+    <!-- 서비스별 상태 조회 -->
+    <select id="getServiceStatus" resultType="com.infraReport.dashboard.dto.DashboardDTO">
+        SELECT 
+            SERVICE_CATEGORY AS serviceCategory,
+            SERVICE_NAME AS serviceName,
+            CASE 
+                WHEN COUNT(CASE WHEN STATUS = '장애' THEN 1 END) > 0 THEN '장애'
+                WHEN COUNT(CASE WHEN STATUS = '주의' THEN 1 END) > 0 THEN '주의'
+                ELSE '정상'
+            END AS serviceStatus
+        FROM TB_DAILY_REPORT
+        WHERE REPORT_DATE = CURDATE()
+        GROUP BY SERVICE_CATEGORY, SERVICE_NAME
+        ORDER BY SERVICE_CATEGORY
+    </select>
+
+    <!-- 금일 장애 건수 조회 -->
+    <select id="getIssueCount" resultType="com.infraReport.dashboard.dto.DashboardDTO">
+        SELECT 
+            SUM(CASE WHEN STATUS = '장애' THEN 1 ELSE 0 END) AS criticalCount,
+            SUM(CASE WHEN STATUS = '주의' THEN 1 ELSE 0 END) AS warningCount,
+            SUM(CASE WHEN STATUS IN ('장애', '주의') THEN 1 ELSE 0 END) AS ongoingIssues
+        FROM TB_DAILY_REPORT
+        WHERE REPORT_DATE = CURDATE()
+    </select>
+
+    <!-- HW/SW 점검 현황 -->
+    <select id="getCheckStatus" resultType="com.infraReport.dashboard.dto.DashboardDTO">
+        SELECT 
+            COUNT(*) AS totalChecks,
+            SUM(CASE WHEN CHECK_RESULT = 'O' THEN 1 ELSE 0 END) AS passedChecks,
+            SUM(CASE WHEN CHECK_RESULT = 'X' THEN 1 ELSE 0 END) AS failedChecks
+        FROM TB_HWSW_CHECK
+        WHERE CHECK_DATE = CURDATE()
+    </select>
+
+    <!-- 자원 사용률 평균 -->
+    <select id="getResourceUsage" resultType="com.infraReport.dashboard.dto.DashboardDTO">
+        SELECT 
+            RESOURCE_TYPE AS resourceType,
+            ROUND(AVG(USAGE_PERCENT), 1) AS avgUsage,
+            MAX(USAGE_PERCENT) AS usagePercent,
+            CASE 
+                WHEN MAX(USAGE_PERCENT) >= 90 THEN '위험'
+                WHEN MAX(USAGE_PERCENT) >= 80 THEN '주의'
+                ELSE '정상'
+            END AS status
+        FROM TB_RESOURCE_USAGE
+        WHERE MONITOR_DATE = CURDATE()
+        GROUP BY RESOURCE_TYPE
+        ORDER BY RESOURCE_TYPE
+    </select>
+
+    <!-- 백업 현황 -->
+    <select id="getBackupStatus" resultType="com.infraReport.dashboard.dto.DashboardDTO">
+        SELECT 
+            COUNT(*) AS totalBackups,
+            SUM(CASE WHEN BACKUP_STATUS = '성공' THEN 1 ELSE 0 END) AS successBackups,
+            SUM(CASE WHEN BACKUP_STATUS = '실패' THEN 1 ELSE 0 END) AS failedBackups
+        FROM TB_BACKUP_RESULT
+        WHERE BACKUP_DATE = CURDATE()
+    </select>
+
+    <!-- 보안 활동 현황 -->
+    <select id="getSecurityActivity" resultType="com.infraReport.dashboard.dto.DashboardDTO">
+        SELECT 
+            SUM(DETECTION_COUNT) AS detectionCount,
+            SUM(BLOCKED_COUNT) AS blockedCount
+        FROM TB_SECURITY_ACTIVITY
+        WHERE ACTIVITY_DATE = CURDATE()
+    </select>
+
+    <!-- 금일 업무 목록 -->
+    <select id="getTodayTasks" resultType="com.infraReport.dashboard.dto.DashboardDTO">
+        SELECT 
+            REPORT_DATE AS reportDate,
+            SERVICE_NAME AS serviceName,
+            TASK_DESCRIPTION AS taskDescription,
+            TASK_TYPE AS taskType,
+            STATUS AS status,
+            CHECK_TIME AS checkTime,
+            MANAGER AS manager,
+            REMARKS AS remarks
+        FROM TB_DAILY_REPORT
+        WHERE REPORT_DATE = CURDATE()
+        ORDER BY 
+            CASE STATUS 
+                WHEN '장애' THEN 1
+                WHEN '주의' THEN 2
+                WHEN '정상' THEN 3
+            END,
+            CREATED_DATE DESC
+        LIMIT 10
+    </select>
+
+    <!-- 당직자 정보 (임시 - 실제 테이블이 있다면 수정) -->
+    <select id="getTodayManager" resultType="com.infraReport.dashboard.dto.DashboardDTO">
+        SELECT 
+            MANAGER AS managerName,
+            DEPARTMENT AS department,
+            '주간' AS managerType
+        FROM TB_DAILY_REPORT
+        WHERE REPORT_DATE = CURDATE()
+        LIMIT 1
+    </select>
+
+    <!-- 주간 예정 작업 -->
+    <select id="getWeeklySchedule" resultType="com.infraReport.dashboard.dto.DashboardDTO">
+        SELECT 
+            REPORT_DATE AS reportDate,
+            SERVICE_NAME AS serviceName,
+            TASK_DESCRIPTION AS taskDescription,
+            TASK_TYPE AS taskType,
+            MANAGER AS manager
+        FROM TB_DAILY_REPORT
+        WHERE REPORT_DATE BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+        ORDER BY REPORT_DATE, CREATED_DATE
+        LIMIT 10
+    </select>
+
+    <!-- 자원 임계치 근접 항목 -->
+    <select id="getCriticalResources" resultType="com.infraReport.dashboard.dto.DashboardDTO">
+        SELECT 
+            SERVER_NAME AS serviceName,
+            RESOURCE_TYPE AS resourceType,
+            USAGE_PERCENT AS usagePercent,
+            STATUS AS status
+        FROM TB_RESOURCE_USAGE
+        WHERE MONITOR_DATE = CURDATE()
+          AND USAGE_PERCENT >= 80
+        ORDER BY USAGE_PERCENT DESC
+        LIMIT 5
+    </select>
+
+</mapper>

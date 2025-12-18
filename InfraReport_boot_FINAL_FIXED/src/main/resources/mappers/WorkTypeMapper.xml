@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.infraReport.workType.dao.WorkTypeDAO">
+	
+	<!-- 업무 목록 조회 -->
+    <select id="selectReportList" resultType="com.infraReport.workType.dto.WorkTypeDTO">
+        SELECT REPORT_ID					/* 보고서 ID						*/
+             , REPORT_DATE                  /* 보고서 작성일자					*/
+             , SERVICE_CATEGORY             /* 서비스 카테고리					*/
+             , SERVICE_NAME                 /* 서비스명						*/
+             , TASK_DESCRIPTION             /* 업무 내용						*/
+             , TASK_TYPE                    /* 업무 유형 (점검/정기점검/장애대응 등)	*/
+             , STATUS                       /* 상태 (정상/주의/장애)				*/
+             , CHECK_TIME                   /* 점검시간 (HH:MM-HH:MM)			*/
+             , MANAGER                      /* 담당자							*/
+             , DEPARTMENT                   /* 부서							*/
+             , REMARKS                      /* 비고							*/
+             , PRIORITY                     /* 우선순위 (높음/보통/낮음)			*/
+             , CREATED_DATE                 /* 등록일시						*/
+             , UPDATED_DATE                 /* 수정일시						*/
+             , CREATED_BY                   /* 등록자							*/
+             , UPDATED_BY                   /* 수정자							*/
+          FROM TB_DAILY_REPORT
+         WHERE 1=1
+         
+         <!-- 날짜 조건 -->
+         <if test="startReportDate != null and endReportDate != null and startReportDate != '' and endReportDate != ''">
+	        AND REPORT_DATE BETWEEN #{startReportDate} AND #{endReportDate}
+	     </if>
+	     <if test="(startReportDate != null and startReportDate != '') and (endReportDate == null or endReportDate == '')">
+	        AND REPORT_DATE <![CDATA[>=]]> #{startReportDate}
+	     </if>
+	     <if test="(endReportDate != null and endReportDate != '') and (startReportDate == null or startReportDate == '')">
+	        AND REPORT_DATE <![CDATA[<=]]> #{endReportDate}
+	     </if>
+	     
+	     <!-- 검색 필드 조건 -->
+	     <choose>
+	        <!-- 특정 필드 검색 -->
+	        <when test="searchField != null and searchField != '' and searchKeyword != null and searchKeyword != ''">
+	            AND
+	            <choose>
+	                <when test="searchField == 'SERVICE_CATEGORY'"> SERVICE_CATEGORY LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'SERVICE_NAME'"> SERVICE_NAME LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'TASK_TYPE'"> TASK_TYPE LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'TASK_DESCRIPTION'"> TASK_DESCRIPTION LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'STATUS'"> STATUS LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'MANAGER'"> MANAGER LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'CREATED_BY'"> CREATED_BY LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	                <when test="searchField == 'UPDATED_BY'"> UPDATED_BY LIKE CONCAT('%', #{searchKeyword}, '%') </when>
+	            </choose>
+	        </when>
+	
+	        <!-- 전체 검색 -->
+	        <when test="(searchField == null or searchField == '') and searchKeyword != null and searchKeyword != ''">
+	            AND (
+	                   SERVICE_CATEGORY LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR SERVICE_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR TASK_TYPE LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR TASK_DESCRIPTION LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR STATUS LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR MANAGER LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR CREATED_BY LIKE CONCAT('%', #{searchKeyword}, '%')
+	                OR UPDATED_BY LIKE CONCAT('%', #{searchKeyword}, '%')
+	            )
+	        </when>
+	     </choose>
+         
+         <!-- 정렬 조건 -->
+		 <choose>
+	        <when test="sortField != null and sortField != ''">
+	            ORDER BY ${sortField}
+	            <if test="sortOrder != null and sortOrder != ''">
+	                ${sortOrder}
+	            </if>
+	        </when>
+	        <otherwise>
+	            ORDER BY CREATED_DATE DESC
+	        </otherwise>
+	     </choose>
+    </select>
+    
+    <!-- 업무 등록 -->
+    <insert id="insertDailyReport" parameterType="com.infraReport.workType.dto.WorkTypeDTO">
+	    INSERT INTO TB_DAILY_REPORT (
+	          REPORT_DATE
+	        , SERVICE_CATEGORY
+	        , SERVICE_NAME
+	        , TASK_DESCRIPTION
+	        , TASK_TYPE
+	        , STATUS
+	        , CHECK_TIME
+	        , MANAGER
+	        , DEPARTMENT
+	        , REMARKS
+	        , PRIORITY
+	        , CREATED_BY
+	    ) VALUES (
+	          #{reportDate}
+	        , #{serviceCategory}
+	        , #{serviceName}
+	        , #{taskDescription}
+	        , #{taskType}
+	        , #{status}
+	        , #{checkTime}
+	        , #{manager}
+	        , #{department}
+	        , #{remarks}
+	        , #{priority}
+	        , #{createdBy}
+	    )
+	</insert>
+	
+	<!-- 업무 상세 조회 -->
+    <select id="selectDailyReportById" resultType="com.infraReport.workType.dto.WorkTypeDTO">
+        SELECT REPORT_ID					/* 보고서 ID						*/
+             , REPORT_DATE                  /* 보고서 작성일자					*/
+             , SERVICE_CATEGORY             /* 서비스 카테고리					*/
+             , SERVICE_NAME                 /* 서비스명						*/
+             , TASK_DESCRIPTION             /* 업무 내용						*/
+             , TASK_TYPE                    /* 업무 유형 (점검/정기점검/장애대응 등)	*/
+             , STATUS                       /* 상태 (정상/주의/장애)				*/
+             , CHECK_TIME                   /* 점검시간 (HH:MM-HH:MM)			*/
+             , MANAGER                      /* 담당자							*/
+             , DEPARTMENT                   /* 부서							*/
+             , REMARKS                      /* 비고							*/
+             , PRIORITY                     /* 우선순위 (높음/보통/낮음)			*/
+             , CREATED_DATE                 /* 등록일시						*/
+             , UPDATED_DATE                 /* 수정일시						*/
+             , CREATED_BY                   /* 등록자							*/
+             , UPDATED_BY                   /* 수정자							*/
+          FROM TB_DAILY_REPORT
+         WHERE 1=1
+           AND REPORT_ID = #{reportId}
+    </select>
+    
+    <!-- 업무 수정 -->
+    <update id="updateDailyReport" parameterType="com.infraReport.workType.dto.WorkTypeDTO">
+    	UPDATE TB_DAILY_REPORT 
+		   SET SERVICE_CATEGORY = #{serviceCategory}
+		     , SERVICE_NAME = #{serviceName}
+		     , TASK_DESCRIPTION = #{taskDescription}
+		     , TASK_TYPE = #{taskType}
+		     , STATUS = #{status}
+		     , CHECK_TIME = #{checkTime}
+		     , MANAGER = #{manager}
+		     , DEPARTMENT = #{department}
+		     , REMARKS = #{remarks}
+		     , PRIORITY = #{priority}
+		     , UPDATED_BY = #{updatedBy}
+		     , UPDATED_DATE = CURRENT_TIMESTAMP 
+<!-- 		     , REPORT_DATE = #{reportDate} -->
+		 WHERE REPORT_ID = #{reportId}
+    </update>
+    
+    <!-- 업무 삭제 -->
+    <delete id="deleteDailyReport" parameterType="Integer">
+    	DELETE FROM TB_DAILY_REPORT
+		 WHERE REPORT_ID = #{reportId}
+    </delete>
+
+</mapper>
