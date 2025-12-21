@@ -27,6 +27,9 @@
                 <a href="/dr/manage" class="btn btn-warning me-2">
                     <i class="fas fa-shield-alt"></i> DR훈련
                 </a>
+                <a href="/asset/list" class="btn btn-primary me-2">
+				    <i class="fas fa-warehouse"></i> 자산관리
+				</a>
                 <button class="btn btn-light me-2" onclick="location.reload()">
                     <i class="fas fa-sync-alt"></i> 새로고침
                 </button>

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.infraReport.asset.dao.AssetDAO">
+    
+    <!-- 서비스 조회 -->
+    <select id="selectAssetServiceAllList" resultType="com.infraReport.asset.dto.AssetDTO">
+        SELECT IDX AS SERVICE_IDX							/* idx		*/
+		     , ASSET_NO AS SERVICE_ASSET_NO            		/* 자산관리번호	*/
+		     , SERVICE_NAME         						/* 서비스명	*/
+		     , CREATED_DATE AS SERVICE_CREATED_DATE         /* 등록일		*/
+		     , CREATED_BY AS SERVICE_CREATED_BY          	/* 등록자		*/
+		     , UPDATED_DATE AS SERVICE_UPDATED_DATE        	/* 수정일		*/
+		     , UPDATED_BY AS SERVICE_UPDATED_BY           	/* 수정자		*/
+		  FROM asset_service
+		 ORDER BY IDX DESC
+    </select>
+    
+    <!-- 하드웨어 조회 -->
+    <select id="selectAssetHardwareAllList" resultType="com.infraReport.asset.dto.AssetDTO">
+        SELECT IDX AS HARDWARE_IDX                              /* idx		*/
+		     , SERVICE_IDX                                      /* 서비스 idx	*/
+		     , ASSET_NO AS HARDWARE_ASSET_NO                    /* 자산관리번호	*/
+		     , HARDWARE_TYPE                                    /* 구분		*/
+		     , MANUFACTURER AS HARDWARE_MANUFACTURER            /* 제조사		*/
+		     , PRODUCT_NAME AS HARDWARE_PRODUCT_NAME            /* 제품명		*/
+		     , VERSION AS HARDWARE_VERSION                      /* 버전		*/
+		     , QUANTITY AS HARDWARE_QUANTITY					/* 개수		*/
+		     , CREATED_DATE AS HARDWARE_CREATED_DATE         	/* 등록일		*/
+			 , CREATED_BY AS HARDWARE_CREATED_BY          		/* 등록자		*/
+			 , UPDATED_DATE AS HARDWARE_UPDATED_DATE        	/* 수정일		*/
+			 , UPDATED_BY AS HARDWARE_UPDATED_BY           		/* 수정자		*/
+		  FROM asset_hardware
+		 ORDER BY IDX DESC
+    </select>
+    
+    <!-- 소프트웨어 조회 -->
+    <select id="selectAssetSoftwareAllList" resultType="com.infraReport.asset.dto.AssetDTO">
+        SELECT IDX AS SOFTWARE_IDX                              /* idx			*/
+		     , HARDWARE_IDX                                     /* 하드웨어 idx	*/
+		     , ASSET_NO AS SOFTWARE_ASSET_NO                    /* 자산관리번호		*/
+		     , SOFTWARE_TYPE                                    /* 구분			*/
+		     , MANUFACTURER AS SOFTWARE_MANUFACTURER            /* 제조사			*/
+		     , PRODUCT_NAME AS SOFTWARE_PRODUCT_NAME            /* 제품명			*/
+		     , VERSION AS SOFTWARE_VERSION                      /* 버전			*/
+		     , QUANTITY AS SOFTWARE_QUANTITY					/* 개수			*/
+		     , CREATED_DATE AS SOFTWARE_CREATED_DATE         	/* 등록일			*/
+			 , CREATED_BY AS SOFTWARE_CREATED_BY          		/* 등록자			*/
+			 , UPDATED_DATE AS SOFTWARE_UPDATED_DATE        	/* 수정일			*/
+			 , UPDATED_BY AS SOFTWARE_UPDATED_BY           		/* 수정자			*/
+		  FROM asset_software
+		 ORDER BY IDX DESC
+    </select>
+    
+    <!-- 서비스 등록 -->
+    <insert id="insertAssetService" parameterType="com.infraReport.asset.dto.AssetDTO" useGeneratedKeys="true" keyProperty="serviceIdx">
+	    INSERT INTO asset_service (
+	    	  ASSET_NO
+		    , SERVICE_NAME
+		    , CREATED_BY
+	    ) VALUES (
+	    	  #{serviceAssetNo}
+	    	, #{serviceName}
+	    	, #{serviceCreatedBy}
+	    )
+	</insert>
+    
+    <!-- 하드웨어 등록 -->
+    <insert id="insertAssetHardware" parameterType="com.infraReport.asset.dto.AssetDTO" useGeneratedKeys="true" keyProperty="hardwareIdx">
+	    INSERT INTO asset_hardware (
+	    	  SERVICE_IDX
+		    , ASSET_NO
+		    , HARDWARE_TYPE
+		    , MANUFACTURER
+		    , PRODUCT_NAME
+		    , VERSION
+		    , QUANTITY
+			, CREATED_BY
+	    ) VALUES (
+	    	  #{serviceIdx}
+	    	, #{hardwareAssetNo}
+	    	, #{hardwareType}
+	    	, #{hardwareManufacturer}
+	    	, #{hardwareProductName}
+	    	, #{hardwareVersion}
+	    	, #{hardwareQuantity}
+	    	, #{hardwareCreatedBy}
+	    )
+	</insert>
+    
+    <!-- 소프트웨어 등록 -->
+    <insert id="insertAssetSoftware" parameterType="com.infraReport.asset.dto.AssetDTO" useGeneratedKeys="true" keyProperty="softwareIdx">
+	    INSERT INTO asset_software (
+	    	  HARDWARE_IDX
+		    , ASSET_NO
+		    , SOFTWARE_TYPE
+		    , MANUFACTURER
+		    , PRODUCT_NAME
+		    , VERSION
+		    , QUANTITY
+			, CREATED_BY
+	    ) VALUES (
+	    	  #{hardwareIdx}
+	    	, #{softwareAssetNo}
+	    	, #{softwareType}
+	    	, #{softwareManufacturer}
+	    	, #{softwareProductName}
+	    	, #{softwareVersion}
+	    	, #{softwareQuantity}
+	    	, #{softwareCreatedBy}
+	    )
+	</insert>
+    
+    <!-- 구성정보 등록 -->
+    <insert id="insertAssetHardwareComponent" parameterType="com.infraReport.asset.dto.AssetDTO">
+	    INSERT INTO asset_hardware_component (
+	    	  HARDWARE_IDX
+	    	, COMPONENT_TYPE 
+		    , COMPONENT_NAME 
+		    , QUANTITY 
+		    , DESCRIPTION 
+		    , CREATED_BY
+	    ) VALUES (
+	    	  #{hardwareIdx}
+	    	, #{componentType}
+	    	, #{componentName}
+	    	, #{componentQuantity}
+	    	, #{componentDescription}
+	    	, #{componentCreatedBy}
+	    )
+	</insert>
+    
+    <!-- 자원이력 정보 등록 -->
+    <insert id="insertAssetHistory" parameterType="com.infraReport.asset.dto.AssetDTO">
+	    INSERT INTO asset_history (
+	    	  ASSET_TYPE
+	    	, PARENT_IDX
+	    	, CONTENT
+	    	, REMARK
+	    	, CREATED_BY
+	    ) VALUES (
+	    	  #{historyAssetType}
+	    	, #{historyParentIdx}
+	    	, #{historyContent}
+	    	, #{historyRemark}
+	    	, #{historyCreatedBy}
+	    )
+	</insert>
+    
+    <!-- 담당자 정보 등록 -->
+    <insert id="insertAssetManager" parameterType="com.infraReport.asset.dto.AssetDTO">
+	    INSERT INTO asset_manager (
+	    	  ASSET_TYPE
+	    	, PARENT_IDX
+	    	, MANAGER_NAME
+	    	, PHONE_NUMBER
+	    	, MOBILE_NUMBER
+	    	, EMAIL
+	    	, CREATED_BY
+	    ) VALUES (
+	    	  #{managerAssetType}
+	    	, #{managerParentIdx}
+	    	, #{managerName}
+	    	, #{managerPhoneNumber}
+	    	, #{managerMobileNumber}
+	    	, #{managerEmail}
+	    	, #{managerCreatedBy}
+	    )
+	</insert>
+</mapper>
