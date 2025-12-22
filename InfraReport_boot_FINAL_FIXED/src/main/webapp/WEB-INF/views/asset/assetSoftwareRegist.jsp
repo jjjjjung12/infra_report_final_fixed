@@ -28,7 +28,11 @@
 <div class="container">
     <div class="content-card">
         <h3 class="page-title mb-4">
-            <i class="fas fa-code me-2"></i>소프트웨어 등록
+            <i class="fas fa-code me-2"></i>
+            <c:choose>
+		        <c:when test="${not empty idx}">소프트웨어 수정</c:when>
+		        <c:otherwise>소프트웨어 등록</c:otherwise>
+		    </c:choose>
         </h3>
 
         <form id="softwareForm">
@@ -39,7 +43,11 @@
 			            <option value="">하드웨어를 선택하세요</option>
 			
 			            <c:forEach var="hardware" items="${assetHardwareList}">
-			                <option value="${hardware.hardwareIdx}">
+			                <option value="${hardware.hardwareIdx}"
+			                	<c:if test="${software.hardwareIdx == hardware.hardwareIdx}">
+					                selected
+					            </c:if>
+			                >
 			                    ${hardware.hardwareProductName}
 			                </option>
 			            </c:forEach>
@@ -50,23 +58,23 @@
             <div class="row g-3">
             	<div class="col-md-6">
                     <label class="form-label">SW 구분 <span class="text-danger">*</span></label>
-                    <input type="text" name="softwareType" class="form-control" maxlength="50" required>
+                    <input type="text" name="softwareType" class="form-control" maxlength="50" required value="${software.softwareType}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">제조사 <span class="text-danger">*</span></label>
-                    <input type="text" name="manufacturer" class="form-control" maxlength="100" required>
+                    <input type="text" name="manufacturer" class="form-control" maxlength="100" required value="${software.softwareManufacturer}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">제품명 <span class="text-danger">*</span></label>
-                    <input type="text" name="productName" class="form-control" maxlength="100" required>
+                    <input type="text" name="productName" class="form-control" maxlength="100" required value="${software.softwareProductName}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">버전 <span class="text-danger">*</span></label>
-                    <input type="text" name="version" class="form-control" maxlength="20" required>
+                    <input type="text" name="version" class="form-control" maxlength="20" required value="${software.softwareVersion}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">개수 <span class="text-danger">*</span></label>
-                    <input type="number" name="quantity" class="form-control" maxlength="20" required>
+                    <input type="number" name="quantity" class="form-control" maxlength="20" required value="${software.softwareQuantity}">
                 </div>
             </div>
 
@@ -135,9 +143,19 @@
 
 <script>
 document.getElementById('softwareForm').addEventListener('submit', function(e) {
+	
+	let url = '';
+	
+	if(!isNull('${idx}')) {
+		url = 'updateSoftware';	
+	} else {
+		url = 'addSoftware';
+	}
+	
 	e.preventDefault();
 
     const softwareData = {
+    	"softwareIdx":'${idx}',
     	"hardwareIdx": document.getElementById('hardwareSelect').value,
         "softwareType": document.querySelector('[name="softwareType"]').value,
         "manufacturer": document.querySelector('[name="manufacturer"]').value,
@@ -148,7 +166,7 @@ document.getElementById('softwareForm').addEventListener('submit', function(e) {
         "managers": managers
     };
     
-    fetch('/asset/addSoftware', {
+    fetch('/asset/'+url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(softwareData)

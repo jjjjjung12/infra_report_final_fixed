@@ -8,188 +8,239 @@
 
 <style>
     body {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        font-family: 'Malgun Gothic';
-        min-height: 100vh;
-    }
-    .content-card {
-        background: #fff;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,.2);
-        padding: 30px;
-        margin: 30px auto;
-    }
-    .page-title {
-        font-weight: bold;
-        color: #667eea;
-    }
+	    background: linear-gradient(135deg, #667eea, #764ba2);
+	    font-family: 'Malgun Gothic';
+	}
+	.container { max-width: 1200px; }
+	.section-box {
+	    background: #fff;
+	    border-radius: 16px;
+	    box-shadow: 0 8px 25px rgba(0,0,0,.2);
+	    padding: 30px;
+	    margin: 30px 0;
+	}
+	.section-title {
+	    font-weight: bold;
+	    color: #667eea;
+	    border-left: 6px solid #667eea;
+	    padding-left: 12px;
+	}
 </style>
 <div class="container">
 
-    <!-- ================= 서비스 ================= -->
-    <div class="content-card mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="page-title">
-                <i class="fas fa-cubes me-2"></i>서비스 정보
-            </h4>
-            <a href="/asset/service/edit?idx=${service.idx}" class="btn btn-warning btn-sm">
-                수정
-            </a>
-        </div>
-
-        <table class="table">
-            <tr>
-                <th width="20%">서비스명</th>
-                <td>${service.serviceName}</td>
-            </tr>
-        </table>
-
-        <!-- 서비스 자원이력 -->
-        <h6 class="mt-3">자원이력정보</h6>
-        <ul class="list-group mb-3">
-            <c:forEach items="${serviceHistories}" var="h">
-                <li class="list-group-item">
-                    ${h.content}
-                    <span class="text-muted">(${h.remark})</span>
-                </li>
-            </c:forEach>
-        </ul>
-
-        <!-- 서비스 담당자 -->
-        <h6>담당자관리</h6>
-        <ul class="list-group">
-            <c:forEach items="${serviceManagers}" var="m">
-                <li class="list-group-item">
-                    ${m.managerName} / ${m.mobileNumber} / ${m.email}
-                </li>
-            </c:forEach>
-        </ul>
+<!-- ===================== 서비스 ===================== -->
+<div class="section-box">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="section-title">서비스</h4>
+        <c:choose>
+            <c:when test="${not empty service}">
+                <a href="/asset/serviceRegist?serviceIdx=${serviceIdx}"
+                   class="btn btn-outline-primary btn-sm">수정</a>
+            </c:when>
+            <c:otherwise>
+                <a href="/asset/serviceRegist"
+                   class="btn btn-outline-success btn-sm">등록</a>
+            </c:otherwise>
+        </c:choose>
     </div>
 
-    <!-- ================= 하드웨어 ================= -->
-    <c:forEach items="${hardwareList}" var="hw">
-        <div class="content-card mb-4 border-start border-primary border-4">
+    <h6>기본정보</h6>
+    <table class="table table-bordered">
+        <tr>
+            <th width="20%">서비스명</th>
+            <td>${service.serviceName}</td>
+        </tr>
+    </table>
 
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="page-title">
-                    <i class="fas fa-server me-2"></i>하드웨어
-                </h4>
-                <a href="/asset/hardware/edit?idx=${hw.idx}" class="btn btn-warning btn-sm">
-                    수정
-                </a>
-            </div>
-
-            <table class="table">
-                <tr>
-                    <th width="20%">제조사</th>
-                    <td>${hw.manufacturer}</td>
-                    <th width="20%">제품명</th>
-                    <td>${hw.productName}</td>
-                </tr>
-                <tr>
-                    <th>버전</th>
-                    <td>${hw.version}</td>
-                    <th>개수</th>
-                    <td>${hw.quantity}</td>
-                </tr>
-            </table>
-
-            <!-- 구성정보 -->
-            <h6 class="mt-3">구성정보</h6>
-            <table class="table table-sm">
-                <thead>
-                <tr>
-                    <th>구성</th>
-                    <th>구성명칭</th>
-                    <th>수량</th>
-                    <th>설명</th>
-                </tr>
-                </thead>
-                <tbody>
-                <c:forEach items="${hw.componentList}" var="c">
-                    <tr>
-                        <td>${c.componentType}</td>
-                        <td>${c.componentName}</td>
-                        <td>${c.quantity}</td>
-                        <td>${c.description}</td>
-                    </tr>
-                </c:forEach>
-                </tbody>
-            </table>
-
-            <!-- 하드웨어 자원이력 -->
-            <h6>자원이력정보</h6>
-            <ul class="list-group mb-3">
-                <c:forEach items="${hw.historyList}" var="h">
-                    <li class="list-group-item">
-                        ${h.content} (${h.remark})
-                    </li>
-                </c:forEach>
-            </ul>
-
-            <!-- 하드웨어 담당자 -->
-            <h6>담당자관리</h6>
-            <ul class="list-group mb-3">
-                <c:forEach items="${hw.managerList}" var="m">
-                    <li class="list-group-item">
-                        ${m.managerName} / ${m.mobileNumber}
-                    </li>
-                </c:forEach>
-            </ul>
-
-            <!-- ================= 소프트웨어 ================= -->
-            <c:forEach items="${hw.softwareList}" var="sw">
-                <div class="card mb-3">
-                    <div class="card-header d-flex justify-content-between">
-                        <strong>
-                            <i class="fas fa-desktop me-2"></i>소프트웨어
-                        </strong>
-                        <a href="/asset/software/edit?idx=${sw.idx}" class="btn btn-warning btn-sm">
-                            수정
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-sm">
-                            <tr>
-                                <th width="20%">제조사</th>
-                                <td>${sw.manufacturer}</td>
-                                <th width="20%">제품명</th>
-                                <td>${sw.productName}</td>
-                            </tr>
-                            <tr>
-                                <th>버전</th>
-                                <td>${sw.version}</td>
-                                <th>개수</th>
-                                <td>${sw.quantity}</td>
-                            </tr>
-                        </table>
-
-                        <h6>자원이력정보</h6>
-                        <ul class="list-group mb-2">
-                            <c:forEach items="${sw.historyList}" var="h">
-                                <li class="list-group-item">
-                                    ${h.content} (${h.remark})
-                                </li>
-                            </c:forEach>
-                        </ul>
-
-                        <h6>담당자관리</h6>
-                        <ul class="list-group">
-                            <c:forEach items="${sw.managerList}" var="m">
-                                <li class="list-group-item">
-                                    ${m.managerName} / ${m.mobileNumber}
-                                </li>
-                            </c:forEach>
-                        </ul>
-                    </div>
-                </div>
+    <h6 class="mt-4">자원이력정보</h6>
+    <table class="table table-bordered">
+        <thead>
+            <tr><th>내용</th><th>비고</th></tr>
+        </thead>
+        <tbody>
+            <c:forEach var="h" items="${serviceHistories}">
+                <tr><td>${h.historyContent}</td><td>${h.historyRemark}</td></tr>
             </c:forEach>
+            <c:if test="${empty serviceHistories}">
+                <tr><td colspan="2" class="text-center text-muted">데이터가 없습니다</td></tr>
+            </c:if>
+        </tbody>
+    </table>
 
-        </div>
-    </c:forEach>
-
+    <h6 class="mt-4">담당자정보</h6>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>이름</th><th>전화번호</th><th>핸드폰번호</th><th>이메일</th>
+            </tr>
+        </thead>
+        <tbody>
+            <c:forEach var="m" items="${serviceManagers}">
+                <tr>
+                    <td>${m.managerName}</td>
+                    <td>${m.managerPhoneNumber}</td>
+                    <td>${m.managerMobileNumber}</td>
+                    <td>${m.managerEmail}</td>
+                </tr>
+            </c:forEach>
+            <c:if test="${empty serviceManagers}">
+                <tr><td colspan="4" class="text-center text-muted">데이터가 없습니다</td></tr>
+            </c:if>
+        </tbody>
+    </table>
 </div>
 
-<script>
+<!-- ===================== 하드웨어 ===================== -->
+<div class="section-box">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="section-title">하드웨어</h4>
+        <c:choose>
+            <c:when test="${not empty hardware}">
+                <a href="/asset/hardwareRegist?hardwareIdx=${hardwareIdx}"
+                   class="btn btn-outline-primary btn-sm">수정</a>
+            </c:when>
+            <c:otherwise>
+                <a href="/asset/hardwareRegist" class="btn btn-outline-success btn-sm">등록</a>
+            </c:otherwise>
+        </c:choose>
+    </div>
 
-</script>
+    <h6>기본정보</h6>
+    <table class="table table-bordered">
+        <tr>
+            <th>HW 구분</th><td>${hardware.hardwareType}</td>
+            <th>제조사</th><td>${hardware.hardwareManufacturer}</td>
+        </tr>
+        <tr>
+            <th>제품명</th><td>${hardware.hardwareProductName}</td>
+            <th>버전</th><td>${hardware.hardwareVersion}</td>
+        </tr>
+        <tr>
+            <th>개수</th><td colspan="3">${hardware.hardwareQuantity}</td>
+        </tr>
+    </table>
+
+    <h6 class="mt-4">구성정보</h6>
+    <table class="table table-bordered">
+        <thead>
+            <tr><th>구성</th><th>구성명칭</th><th>수량</th><th>설명</th></tr>
+        </thead>
+        <tbody>
+            <c:forEach var="c" items="${hardwareComponents}">
+                <tr>
+                    <td>${c.componentType}</td>
+                    <td>${c.componentName}</td>
+                    <td>${c.componentQuantity}</td>
+                    <td>${c.componentDescription}</td>
+                </tr>
+            </c:forEach>
+            <c:if test="${empty hardwareComponents}">
+                <tr><td colspan="4" class="text-center text-muted">데이터가 없습니다</td></tr>
+            </c:if>
+        </tbody>
+    </table>
+
+    <h6 class="mt-4">자원이력정보</h6>
+    <table class="table table-bordered">
+        <thead><tr><th>내용</th><th>비고</th></tr></thead>
+        <tbody>
+            <c:forEach var="h" items="${hardwareHistories}">
+                <tr><td>${h.historyContent}</td><td>${h.historyRemark}</td></tr>
+            </c:forEach>
+            <c:if test="${empty hardwareHistories}">
+                <tr><td colspan="2" class="text-center text-muted">데이터가 없습니다</td></tr>
+            </c:if>
+        </tbody>
+    </table>
+
+    <h6 class="mt-4">담당자정보</h6>
+    <table class="table table-bordered">
+        <thead>
+            <tr><th>이름</th><th>전화번호</th><th>핸드폰번호</th><th>이메일</th></tr>
+        </thead>
+        <tbody>
+            <c:forEach var="m" items="${hardwareManagers}">
+                <tr>
+                    <td>${m.managerName}</td>
+                    <td>${m.managerPhoneNumber}</td>
+                    <td>${m.managerMobileNumber}</td>
+                    <td>${m.managerEmail}</td>
+                </tr>
+            </c:forEach>
+            <c:if test="${empty hardwareManagers}">
+                <tr><td colspan="4" class="text-center text-muted">데이터가 없습니다</td></tr>
+            </c:if>
+        </tbody>
+    </table>
+</div>
+
+<!-- ===================== 소프트웨어 ===================== -->
+<div class="section-box">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="section-title">소프트웨어</h4>
+        <c:choose>
+            <c:when test="${not empty software}">
+                <a href="/asset/softwareRegist?softwareIdx=${softwareIdx}"
+                   class="btn btn-outline-primary btn-sm">수정</a>
+            </c:when>
+            <c:otherwise>
+                <a href="/asset/softwareRegist"
+                   class="btn btn-outline-success btn-sm">등록</a>
+            </c:otherwise>
+        </c:choose>
+    </div>
+
+    <h6>기본정보</h6>
+    <table class="table table-bordered">
+        <tr>
+            <th>SW 구분</th><td>${software.softwareType}</td>
+            <th>제조사</th><td>${software.softwareManufacturer}</td>
+        </tr>
+        <tr>
+            <th>제품명</th><td>${software.softwareProductName}</td>
+            <th>버전</th><td>${software.softwareVersion}</td>
+        </tr>
+        <tr>
+            <th>개수</th><td colspan="3">${software.softwareQuantity}</td>
+        </tr>
+    </table>
+
+    <h6 class="mt-4">자원이력정보</h6>
+    <table class="table table-bordered">
+        <thead><tr><th>내용</th><th>비고</th></tr></thead>
+        <tbody>
+            <c:forEach var="h" items="${softwareHistories}">
+                <tr><td>${h.historyContent}</td><td>${h.historyRemark}</td></tr>
+            </c:forEach>
+            <c:if test="${empty softwareHistories}">
+                <tr><td colspan="2" class="text-center text-muted">데이터가 없습니다</td></tr>
+            </c:if>
+        </tbody>
+    </table>
+
+    <h6 class="mt-4">담당자정보</h6>
+    <table class="table table-bordered">
+        <thead>
+            <tr><th>이름</th><th>전화번호</th><th>핸드폰번호</th><th>이메일</th></tr>
+        </thead>
+        <tbody>
+            <c:forEach var="m" items="${softwareManagers}">
+                <tr>
+                    <td>${m.managerName}</td>
+                    <td>${m.managerPhoneNumber}</td>
+                    <td>${m.managerMobileNumber}</td>
+                    <td>${m.managerEmail}</td>
+                </tr>
+            </c:forEach>
+            <c:if test="${empty softwareManagers}">
+                <tr><td colspan="4" class="text-center text-muted">데이터가 없습니다</td></tr>
+            </c:if>
+        </tbody>
+    </table>
+</div>
+
+<div class="text-end mb-5">
+    <a href="/asset/list" class="btn btn-outline-secondary">목록</a>
+</div>
+
+</div>

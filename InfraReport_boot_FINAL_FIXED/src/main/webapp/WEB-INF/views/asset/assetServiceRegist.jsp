@@ -28,13 +28,17 @@
 <div class="container">
     <div class="content-card">
         <h3 class="page-title mb-4">
-            <i class="fas fa-concierge-bell me-2"></i>서비스 등록
+        	<i class="fas fa-concierge-bell me-2"></i>
+            <c:choose>
+		        <c:when test="${not empty idx}">서비스 수정</c:when>
+		        <c:otherwise>서비스 등록</c:otherwise>
+		    </c:choose>
         </h3>
 
         <form id="serviceForm">
             <div class="mb-3">
                 <label class="form-label">서비스명 <span class="text-danger">*</span></label>
-                <input type="text" name="serviceName" class="form-control" maxlength="100" required>
+                <input type="text" name="serviceName" class="form-control" maxlength="100" required value="${service.serviceName}">
             </div>
 
             <!-- 자원이력 테이블 -->
@@ -103,16 +107,26 @@
 <%@ include file="assetCommonModals.jsp" %>
 
 <script>
+  
 document.getElementById('serviceForm').addEventListener('submit', function(e) {
+	let url = '';
+	
+	if(!isNull('${idx}')) {
+		url = 'updateService';	
+	} else {
+		url = 'addService';
+	}
+	
 	e.preventDefault();
 
     const serviceData = {
+    	"serviceIdx":'${idx}',
         "serviceName": document.querySelector('[name="serviceName"]').value,
         "histories": histories,
         "managers": managers
     };
     
-    fetch('/asset/addService', {
+    fetch('/asset/'+url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(serviceData)

@@ -2,6 +2,150 @@
 <!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.infraReport.asset.dao.AssetDAO">
+
+	<!-- 자산관리 조회 -->
+	<select id="selectAssetList" parameterType="hashmap" resultType="map">
+		SELECT *
+		  FROM (
+		    SELECT s.IDX AS SERVICE_IDX											/* SERVICE ↔ HARDWARE ↔ SOFTWARE 조인 데이터	*/
+			     , s.ASSET_NO AS SERVICE_ASSET_NO
+			     , s.SERVICE_NAME
+			     , s.CREATED_DATE AS SERVICE_CREATED_DATE
+			     , s.CREATED_BY AS SERVICE_CREATED_BY
+			     , s.UPDATED_DATE AS SERVICE_UPDATED_DATE
+			     , s.UPDATED_BY AS SERVICE_UPDATED_BY
+			     , hw.IDX AS HARDWARE_IDX
+			     , hw.SERVICE_IDX AS HARDWARE_SERVICE_IDX
+			     , hw.ASSET_NO AS HARDWARE_ASSET_NO
+			     , hw.HARDWARE_TYPE
+			     , hw.MANUFACTURER AS HARDWARE_MANUFACTURER
+			     , hw.PRODUCT_NAME AS HARDWARE_PRODUCT_NAME
+			     , hw.VERSION AS HARDWARE_VERSION
+			     , hw.QUANTITY AS HARDWARE_QUANTITY
+			     , hw.CREATED_DATE AS HARDWARE_CREATED_DATE
+			     , hw.CREATED_BY AS HARDWARE_CREATED_BY
+			     , hw.UPDATED_DATE AS HARDWARE_UPDATED_DATE
+			     , hw.UPDATED_BY AS HARDWARE_UPDATED_BY
+			     , sw.IDX AS SOFTWARE_IDX
+			     , sw.HARDWARE_IDX AS SOFTWARE_HARDWARE_IDX
+			     , sw.ASSET_NO AS SOFTWARE_ASSET_NO
+			     , sw.SOFTWARE_TYPE
+			     , sw.MANUFACTURER AS SOFTWARE_MANUFACTURER
+			     , sw.PRODUCT_NAME AS SOFTWARE_PRODUCT_NAME
+			     , sw.VERSION AS SOFTWARE_VERSION
+			     , sw.QUANTITY AS SOFTWARE_QUANTITY
+			     , sw.CREATED_DATE AS SOFTWARE_CREATED_DATE
+			     , sw.CREATED_BY AS SOFTWARE_CREATED_BY
+			     , sw.UPDATED_DATE AS SOFTWARE_UPDATED_DATE
+			     , sw.UPDATED_BY AS SOFTWARE_UPDATED_BY
+			FROM asset_service s
+			LEFT JOIN asset_hardware hw
+			       ON hw.SERVICE_IDX = s.IDX
+			LEFT JOIN asset_software sw
+			       ON sw.HARDWARE_IDX = hw.IDX
+		   WHERE 1=1
+		UNION ALL
+		SELECT NULL AS SERVICE_IDX 									/* SERVICE 없는 HARDWARE (SERVICE_IDX = 0)	*/
+		     , NULL AS SERVICE_ASSET_NO
+		     , NULL AS SERVICE_NAME
+		     , NULL AS SERVICE_CREATED_DATE
+		     , NULL AS SERVICE_CREATED_BY
+		     , NULL AS SERVICE_UPDATED_DATE
+		     , NULL AS SERVICE_UPDATED_BY
+		     , hw.IDX AS HARDWARE_IDX
+		     , hw.SERVICE_IDX AS HARDWARE_SERVICE_IDX 
+		     , hw.ASSET_NO AS HARDWARE_ASSET_NO
+		     , hw.HARDWARE_TYPE AS HARDWARE_TYPE
+		     , hw.MANUFACTURER AS HARDWARE_MANUFACTURER
+		     , hw.PRODUCT_NAME AS HARDWARE_PRODUCT_NAME
+		     , hw.VERSION AS HARDWARE_VERSION
+		     , hw.QUANTITY AS HARDWARE_QUANTITY
+		     , hw.CREATED_DATE AS HARDWARE_CREATED_DATE
+		     , hw.CREATED_BY AS HARDWARE_CREATED_BY
+		     , hw.UPDATED_DATE AS HARDWARE_UPDATED_DATE
+		     , hw.UPDATED_BY AS HARDWARE_UPDATED_BY
+		     , sw.IDX AS SOFTWARE_IDX
+		     , sw.HARDWARE_IDX AS SOFTWARE_HARDWARE_IDX
+		     , sw.ASSET_NO AS SOFTWARE_ASSET_NO
+		     , sw.SOFTWARE_TYPE AS SOFTWARE_TYPE
+		     , sw.MANUFACTURER AS SOFTWARE_MANUFACTURER
+		     , sw.PRODUCT_NAME AS SOFTWARE_PRODUCT_NAME
+		     , sw.VERSION AS SOFTWARE_VERSION
+		     , sw.QUANTITY AS SOFTWARE_QUANTITY
+		     , sw.CREATED_DATE AS SOFTWARE_CREATED_DATE
+		     , sw.CREATED_BY AS SOFTWARE_CREATED_BY
+		     , sw.UPDATED_DATE AS SOFTWARE_UPDATED_DATE
+		     , sw.UPDATED_BY AS SOFTWARE_UPDATED_BY
+		  FROM asset_hardware hw
+		  LEFT JOIN asset_software sw
+		         ON sw.HARDWARE_IDX = hw.IDX
+		 WHERE hw.SERVICE_IDX = 0
+		UNION ALL
+		SELECT NULL AS SERVICE_IDX 									/* HARDWARE 없는 SOFTWARE (HARDWARE_IDX = 0)	*/
+		     , NULL AS SERVICE_ASSET_NO
+		     , NULL AS SERVICE_NAME
+		     , NULL AS SERVICE_CREATED_DATE
+		     , NULL AS SERVICE_CREATED_BY
+		     , NULL AS SERVICE_UPDATED_DATE
+		     , NULL AS SERVICE_UPDATED_BY
+		     , NULL AS HARDWARE_IDX
+		     , NULL AS HARDWARE_SERVICE_IDX 
+		     , NULL AS HARDWARE_ASSET_NO
+		     , NULL AS HARDWARE_TYPE
+		     , NULL AS HARDWARE_MANUFACTURER
+		     , NULL AS HARDWARE_PRODUCT_NAME
+		     , NULL AS HARDWARE_VERSION
+		     , NULL AS HARDWARE_QUANTITY
+		     , NULL AS HARDWARE_CREATED_DATE
+		     , NULL AS HARDWARE_CREATED_BY
+		     , NULL AS HARDWARE_UPDATED_DATE
+		     , NULL AS HARDWARE_UPDATED_BY
+		     , sw.IDX AS SOFTWARE_IDX
+		     , sw.HARDWARE_IDX AS SOFTWARE_HARDWARE_IDX
+		     , sw.ASSET_NO AS SOFTWARE_ASSET_NO
+		     , sw.SOFTWARE_TYPE AS SOFTWARE_TYPE
+		     , sw.MANUFACTURER AS SOFTWARE_MANUFACTURER
+		     , sw.PRODUCT_NAME AS SOFTWARE_PRODUCT_NAME
+		     , sw.VERSION AS SOFTWARE_VERSION
+		     , sw.QUANTITY AS SOFTWARE_QUANTITY
+		     , sw.CREATED_DATE AS SOFTWARE_CREATED_DATE
+		     , sw.CREATED_BY AS SOFTWARE_CREATED_BY
+		     , sw.UPDATED_DATE AS SOFTWARE_UPDATED_DATE
+		     , sw.UPDATED_BY AS SOFTWARE_UPDATED_BY
+		 FROM asset_software sw
+		WHERE sw.HARDWARE_IDX = 0
+		) t
+		WHERE 1=1
+		<if test="(serviceIdx != null and serviceIdx.size() > 0) or (hardwareIdx != null and hardwareIdx.size() > 0) or (softwareIdx != null and softwareIdx.size() > 0)">
+		    AND (
+		        <if test="serviceIdx != null and serviceIdx.size() > 0">
+		            SERVICE_IDX IN
+		            <foreach collection="serviceIdx" item="idx" open="(" separator="," close=")">
+		                #{idx}
+		            </foreach>
+		        </if>
+		        <if test="hardwareIdx != null and hardwareIdx.size() > 0">
+		            <if test="serviceIdx != null and serviceIdx.size() > 0">
+		                OR
+		            </if>
+		            HARDWARE_IDX IN
+		            <foreach collection="hardwareIdx" item="idx" open="(" separator="," close=")">
+		                #{idx}
+		            </foreach>
+		        </if>
+		        <if test="softwareIdx != null and softwareIdx.size() > 0">
+		            <if test="(serviceIdx != null and serviceIdx.size() > 0) 
+		                     or (hardwareIdx != null and hardwareIdx.size() > 0)">
+		                OR
+		            </if>
+		            SOFTWARE_IDX IN
+		            <foreach collection="softwareIdx" item="idx" open="(" separator="," close=")">
+		                #{idx}
+		            </foreach>
+		        </if>
+		    )
+		</if>
+	</select>
     
     <!-- 서비스 조회 -->
     <select id="selectAssetServiceAllList" resultType="com.infraReport.asset.dto.AssetDTO">
@@ -110,6 +254,43 @@
 	    	, #{softwareCreatedBy}
 	    )
 	</insert>
+	
+	<!-- 서비스 수정 -->
+	<update id="updateAssetService" parameterType="com.infraReport.asset.dto.AssetDTO">
+		UPDATE asset_service
+		   SET SERVICE_NAME = #{serviceName}
+		     , UPDATED_BY = #{serviceUpdatedBy}
+		  WHERE 1=1
+		    AND IDX = #{serviceIdx}
+	</update>
+	
+	<!-- 하드웨어 수정 -->
+	<update id="updateAssetHardware" parameterType="com.infraReport.asset.dto.AssetDTO">
+		UPDATE asset_hardware
+		   SET SERVICE_IDX = #{serviceIdx}
+		     , HARDWARE_TYPE = #{hardwareType}
+		     , MANUFACTURER = #{hardwareManufacturer}
+		     , PRODUCT_NAME = #{hardwareProductName}
+		     , VERSION = #{hardwareVersion}
+		     , QUANTITY = #{hardwareQuantity}
+		     , UPDATED_BY = #{hardwareUpdatedBy}
+		  WHERE 1=1
+		    AND IDX = #{hardwareIdx}
+	</update>
+	
+	<!-- 소프트웨어 수정 -->
+	<update id="updateAssetSoftware" parameterType="com.infraReport.asset.dto.AssetDTO">
+		UPDATE asset_software
+		   SET HARDWARE_IDX = #{hardwareIdx}
+		     , SOFTWARE_TYPE = #{softwareType}
+		     , MANUFACTURER = #{softwareManufacturer}
+		     , PRODUCT_NAME = #{softwareProductName}
+		     , VERSION = #{softwareVersion}
+		     , QUANTITY = #{softwareQuantity}
+		     , UPDATED_BY = #{softwareUpdatedBy}
+		  WHERE 1=1
+		    AND IDX = #{softwareIdx}
+	</update>
     
     <!-- 구성정보 등록 -->
     <insert id="insertAssetHardwareComponent" parameterType="com.infraReport.asset.dto.AssetDTO">
@@ -167,4 +348,132 @@
 	    	, #{managerCreatedBy}
 	    )
 	</insert>
+	
+	<!-- 구성정보 삭제 -->
+	<delete id="deleteAssetHardwareComponent" parameterType="com.infraReport.asset.dto.AssetDTO">
+		DELETE FROM asset_hardware_component 
+		 WHERE 1=1
+		   AND HARDWARE_IDX = #{hardwareIdx}
+	</delete>
+	
+	<!-- 자원이력 정보 삭제 -->
+	<delete id="deleteAssetHistory" parameterType="com.infraReport.asset.dto.AssetDTO">
+		DELETE FROM asset_history 
+		 WHERE 1=1
+		   AND ASSET_TYPE = #{historyAssetType}
+		   AND PARENT_IDX = #{historyParentIdx}
+	</delete>
+	
+	<!-- 담당자 정보 삭제 -->
+	<delete id="deleteAssetManager" parameterType="com.infraReport.asset.dto.AssetDTO">
+		DELETE FROM asset_manager 
+		 WHERE 1=1
+		   AND ASSET_TYPE = #{managerAssetType}
+		   AND PARENT_IDX = #{managerParentIdx}
+	</delete>
+	
+	<!-- 서비스 조회 -->
+    <select id="selectAssetServiceByIdx" parameterType="Integer" resultType="com.infraReport.asset.dto.AssetDTO">
+    	SELECT IDX AS SERVICE_IDX							/* idx		*/
+		     , ASSET_NO AS SERVICE_ASSET_NO            		/* 자산관리번호	*/
+		     , SERVICE_NAME         						/* 서비스명	*/
+		     , CREATED_DATE AS SERVICE_CREATED_DATE         /* 등록일		*/
+		     , CREATED_BY AS SERVICE_CREATED_BY          	/* 등록자		*/
+		     , UPDATED_DATE AS SERVICE_UPDATED_DATE        	/* 수정일		*/
+		     , UPDATED_BY AS SERVICE_UPDATED_BY           	/* 수정자		*/
+		  FROM asset_service
+		 WHERE 1=1
+		   AND IDX = #{serviceIdx}
+    </select>
+	
+	<!-- 하드웨어 조회 -->
+    <select id="selectAssetHardwareByIdx" parameterType="Integer" resultType="com.infraReport.asset.dto.AssetDTO">
+    	SELECT IDX AS HARDWARE_IDX                              /* idx		*/
+		     , SERVICE_IDX                                      /* 서비스 idx	*/
+		     , ASSET_NO AS HARDWARE_ASSET_NO                    /* 자산관리번호	*/
+		     , HARDWARE_TYPE                                    /* 구분		*/
+		     , MANUFACTURER AS HARDWARE_MANUFACTURER            /* 제조사		*/
+		     , PRODUCT_NAME AS HARDWARE_PRODUCT_NAME            /* 제품명		*/
+		     , VERSION AS HARDWARE_VERSION                      /* 버전		*/
+		     , QUANTITY AS HARDWARE_QUANTITY					/* 개수		*/
+		     , CREATED_DATE AS HARDWARE_CREATED_DATE         	/* 등록일		*/
+			 , CREATED_BY AS HARDWARE_CREATED_BY          		/* 등록자		*/
+			 , UPDATED_DATE AS HARDWARE_UPDATED_DATE        	/* 수정일		*/
+			 , UPDATED_BY AS HARDWARE_UPDATED_BY           		/* 수정자		*/
+		  FROM asset_hardware
+		 WHERE 1=1
+		   AND IDX = #{hardwareIdx}
+    </select>
+	
+	<!-- 소프트웨어 조회 -->
+    <select id="selectAssetSoftwareByIdx" parameterType="Integer" resultType="com.infraReport.asset.dto.AssetDTO">
+    	SELECT IDX AS SOFTWARE_IDX                              /* idx			*/
+		     , HARDWARE_IDX                                     /* 하드웨어 idx	*/
+		     , ASSET_NO AS SOFTWARE_ASSET_NO                    /* 자산관리번호		*/
+		     , SOFTWARE_TYPE                                    /* 구분			*/
+		     , MANUFACTURER AS SOFTWARE_MANUFACTURER            /* 제조사			*/
+		     , PRODUCT_NAME AS SOFTWARE_PRODUCT_NAME            /* 제품명			*/
+		     , VERSION AS SOFTWARE_VERSION                      /* 버전			*/
+		     , QUANTITY AS SOFTWARE_QUANTITY					/* 개수			*/
+		     , CREATED_DATE AS SOFTWARE_CREATED_DATE         	/* 등록일			*/
+			 , CREATED_BY AS SOFTWARE_CREATED_BY          		/* 등록자			*/
+			 , UPDATED_DATE AS SOFTWARE_UPDATED_DATE        	/* 수정일			*/
+			 , UPDATED_BY AS SOFTWARE_UPDATED_BY           		/* 수정자			*/
+		  FROM asset_software
+		 WHERE 1=1
+		   AND IDX = #{softwareIdx}
+    </select>
+	
+	<!-- 자원이력정보 조회 -->
+    <select id="selectAssetHistoryByType" parameterType="hashmap" resultType="com.infraReport.asset.dto.AssetDTO">
+    	SELECT IDX AS HISTORY_IDX						/* idx					*/
+		     , ASSET_TYPE AS HISTORY_ASSET_TYPE         /* 구분 (service/hw/sw)	*/
+			 , PARENT_IDX AS HISTORY_PARENT_IDX         /* 자산관리 idx			*/
+			 , CONTENT AS HISTORY_CONTENT               /* 내용					*/
+			 , REMARK AS HISTORY_REMARK                 /* 비고					*/
+			 , CREATED_DATE AS  HISTORY_CREATED_DATE    /* 등록일					*/
+			 , CREATED_BY AS HISTORY_CREATED_BY         /* 등록자					*/
+			 , UPDATED_DATE AS HISTORY_UPDATED_DATE     /* 수정일					*/
+			 , UPDATED_BY AS HISTORY_UPDATED_BY         /* 수정자					*/
+		  FROM asset_history
+		 WHERE 1=1
+		   AND ASSET_TYPE = #{historyAssetType}
+		   AND parent_idx = #{historyParentIdx}
+    </select>
+	
+	<!-- 담당자정보 조회 -->
+    <select id="selectAssetManagerByType" parameterType="hashmap" resultType="com.infraReport.asset.dto.AssetDTO">
+    	SELECT IDX AS MANAGER_IDX 						/* idx					*/
+		     , ASSET_TYPE AS MANAGER_ASSET_TYPE         /* 구분 (service/hw/sw)	*/
+			 , PARENT_IDX AS MANAGER_PARENT_IDX         /* 자산관리 idx			*/
+			 , MANAGER_NAME AS MANAGER_NAME             /* 이름					*/
+			 , PHONE_NUMBER  AS MANAGER_PHONE_NUMBER    /* 전화번호				*/
+			 , MOBILE_NUMBER AS MANAGER_MOBILE_NUMBER   /* 핸드폰번호				*/
+			 , EMAIL AS MANAGER_EMAIL                   /* 이메일					*/
+			 , CREATED_DATE AS MANAGER_CREATED_DATE     /* 등록일					*/
+			 , CREATED_BY AS MANAGER_CREATED_BY         /* 등록자					*/
+			 , UPDATED_DATE AS MANAGER_UPDATED_DATE     /* 수정일					*/
+			 , UPDATED_BY AS MANAGER_UPDATED_BY         /* 수정자					*/
+		  FROM asset_manager
+		 WHERE 1=1
+		   AND ASSET_TYPE = #{managerAssetType}
+		   AND parent_idx = #{managerParentIdx}
+    </select>
+	
+	<!-- 하드웨어 구성정보 조회 -->
+    <select id="selectAssetHardwareComponentByHardware" parameterType="hashmap" resultType="com.infraReport.asset.dto.AssetDTO">
+    	SELECT IDX AS COMPONENT_IDX
+		     , HARDWARE_IDX AS HARDWARE_IDX
+		     , COMPONENT_TYPE AS COMPONENT_TYPE
+		     , COMPONENT_NAME AS COMPONENT_NAME
+		     , QUANTITY AS COMPONENT_QUANTITY
+		     , DESCRIPTION AS COMPONENT_DESCRIPTION
+		     , CREATED_DATE AS COMPONENT_CREATED_DATE
+			 , CREATED_BY AS COMPONENT_CREATED_BY
+			 , UPDATED_DATE AS COMPONENT_UPDATED_DATE
+			 , UPDATED_BY AS COMPONENT_UPDATED_BY
+		  FROM asset_hardware_component
+		 WHERE 1=1
+		   AND HARDWARE_IDX = #{hardwareIdx}
+    </select>
 </mapper>

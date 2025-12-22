@@ -23,6 +23,16 @@
         font-weight: bold;
         color: #667eea;
     }
+    .table-responsive {
+	    overflow-x: auto;
+	    -webkit-overflow-scrolling: touch; /* 모바일 스크롤 부드럽게 */
+	}
+	table th, table td {
+	    white-space: nowrap; 		/* 줄바꿈 방지 			*/
+	    max-width: 150px;    		/* 최대 폭 			*/
+	    overflow: hidden;    		/* 넘치는 텍스트 숨김 	*/
+	    text-overflow: ellipsis; 	/* ... 표시 			*/
+	}
 </style>
 
 <div class="container">
@@ -32,7 +42,7 @@
         </h3>
 
         <!-- 검색조건 -->
-		<form method="get" action="list" class="mb-4">
+		<form id="searchForm" class="mb-4">
 		
 		    <!-- 서비스 -->
 		    <div class="mb-2">
@@ -40,7 +50,7 @@
 		        <c:forEach items="${serviceList}" var="svc" varStatus="st">
 		            <c:if test="${st.index < 5}">
 		                <label class="me-2">
-		                    <input type="checkbox" name="serviceIds" value="${svc.serviceIdx}">
+		                    <input type="checkbox" name="serviceIdx" value="${svc.serviceIdx}">
 		                    ${svc.serviceName}
 		                </label>
 		            </c:if>
@@ -53,7 +63,7 @@
 		            <c:forEach items="${serviceList}" var="svc" varStatus="st">
 		                <c:if test="${st.index >= 5}">
 		                    <label class="me-2">
-		                        <input type="checkbox" name="serviceIds" value="${svc.serviceIdx}">
+		                        <input type="checkbox" name="serviceIdx" value="${svc.serviceIdx}">
 		                        ${svc.serviceName}
 		                    </label>
 		                </c:if>
@@ -67,7 +77,7 @@
 		        <c:forEach items="${hardwareList}" var="hw" varStatus="st">
 		            <c:if test="${st.index < 5}">
 		                <label class="me-2">
-		                    <input type="checkbox" name="hardwareIds" value="${hw.hardwareIdx}">
+		                    <input type="checkbox" name="hardwareIdx" value="${hw.hardwareIdx}">
 		                    ${hw.hardwareProductName}
 		                </label>
 		            </c:if>
@@ -80,7 +90,7 @@
 		            <c:forEach items="${hardwareList}" var="hw" varStatus="st">
 		                <c:if test="${st.index >= 5}">
 		                    <label class="me-2">
-		                        <input type="checkbox" name="hardwareIds" value="${hw.hardwareIdx}">
+		                        <input type="checkbox" name="hardwareIdx" value="${hw.hardwareIdx}">
 		                        ${hw.hardwareProductName}
 		                    </label>
 		                </c:if>
@@ -94,7 +104,7 @@
 		        <c:forEach items="${softwareList}" var="sw" varStatus="st">
 		            <c:if test="${st.index < 5}">
 		                <label class="me-2">
-		                    <input type="checkbox" name="softwareIds" value="${sw.softwareIdx}">
+		                    <input type="checkbox" name="softwareIdx" value="${sw.softwareIdx}">
 		                    ${sw.softwareProductName}
 		                </label>
 		            </c:if>
@@ -107,7 +117,7 @@
 		            <c:forEach items="${softwareList}" var="sw" varStatus="st">
 		                <c:if test="${st.index >= 5}">
 		                    <label class="me-2">
-		                        <input type="checkbox" name="softwareIds" value="${sw.softwareIdx}">
+		                        <input type="checkbox" name="softwareIdx" value="${sw.softwareIdx}">
 		                        ${sw.softwareProductName}
 		                    </label>
 		                </c:if>
@@ -140,7 +150,8 @@
 		</div>
 		
         <!-- 목록 -->
-        <table class="table table-hover">
+        <div class="table-responsive">
+        <table class="table table-hover" id="assetTable">
             <thead class="table-light">
             <tr>
                 <th>서비스명</th>
@@ -155,20 +166,20 @@
                 <th>상세</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody id="assetTableBody">
             <c:forEach items="${list}" var="row">
                 <tr>
-                    <td>${row.type}</td>
-                    <td>${row.assetNo}</td>
-                    <td>${row.manufacturer}</td>
-                    <td>${row.productName}</td>
-                    <td>${row.version}</td>
-                    <td>${row.version}</td>
-                    <td>${row.version}</td>
-                    <td>${row.version}</td>
-                    <td>${row.version}</td>
+                    <td>${row.SERVICE_NAME}</td>
+                    <td>${row.HARDWARE_TYPE}</td>
+                    <td>${row.HARDWARE_MANUFACTURER}</td>
+                    <td>${row.HARDWARE_PRODUCT_NAME}</td>
+                    <td>${row.HARDWARE_VERSION}</td>
+                    <td>${row.SOFTWARE_TYPE}</td>
+                    <td>${row.SOFTWARE_MANUFACTURER}</td>
+                    <td>${row.SOFTWARE_PRODUCT_NAME}</td>
+                    <td>${row.SOFTWARE_VERSION}</td>
                     <td>
-                        <a href="detail?idx=${row.idx}" class="btn btn-sm btn-outline-primary">
+                        <a href="detail?serviceIdx=${row.SERVICE_IDX}&hardwareIdx=${row.HARDWARE_IDX}&softwareIdx=${row.SOFTWARE_IDX}" class="btn btn-sm btn-outline-primary">
                             상세
                         </a>
                     </td>
@@ -176,6 +187,7 @@
             </c:forEach>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 
@@ -184,5 +196,64 @@
 function toggleMore(id) {
     const el = document.getElementById(id);
     el.classList.toggle('d-none');
+}
+
+document.getElementById('searchForm').addEventListener('submit', function(e) {
+	
+	e.preventDefault();
+	
+	const form = document.getElementById('searchForm');
+    const formData = new FormData(form);
+
+    // 리스트 형태로 보내기
+    const data = {};
+    formData.forEach((value, key) => {
+        if (!data[key]) data[key] = [];
+        data[key].push(Number(value));
+    });
+    
+    fetch('/asset/getAssetList', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+    	updateTable(result);
+    });
+});
+
+function updateTable(list) {
+	let html = "";
+	
+	$("#assetTableBody").empty();
+	
+	if(!isNull(list)) {
+		if(list.length > 0) {
+			for(var i=0; i<list.length; i++) {
+				html += '<tr>';
+	            html += '    <td>'+(list[i].SERVICE_NAME ?? '')+'</td>';
+	            html += '    <td>'+(list[i].HARDWARE_TYPE ?? '')+'</td>';
+	            html += '    <td>'+(list[i].HARDWARE_MANUFACTURER ?? '')+'</td>';
+	            html += '    <td>'+(list[i].HARDWARE_PRODUCT_NAME ?? '')+'</td>';
+	            html += '    <td>'+(list[i].HARDWARE_VERSION ?? '')+'</td>';
+	            html += '    <td>'+(list[i].SOFTWARE_TYPE ?? '')+'</td>';
+	            html += '    <td>'+(list[i].SOFTWARE_MANUFACTURER ?? '')+'</td>';
+	            html += '    <td>'+(list[i].SOFTWARE_PRODUCT_NAME ?? '')+'</td>';
+	            html += '    <td>'+(list[i].SOFTWARE_VERSION ?? '')+'</td>';
+	            html += '    <td>';
+	            html += '        <a href="detail?serviceIdx='+(list[i].SERVICE_IDX ?? '')+'&hardwareIdx='+(list[i].HARDWARE_IDX ?? '')+'&softwareIdx='+(list[i].SOFTWARE_IDX ?? '')+'" class="btn btn-sm btn-outline-primary">';
+	            html += '            상세';
+	            html += '        </a>';
+	            html += '    </td>';
+	            html += '</tr>';
+			}
+		} else {
+			html += '<tr><td colspan="10">조회된 데이터가 없습니다.</td></tr>';	
+		}
+	} else {
+		html += '<tr><td colspan="10">조회된 데이터가 없습니다.</td></tr>';
+	}
+	$("#assetTableBody").append(html);
 }
 </script>

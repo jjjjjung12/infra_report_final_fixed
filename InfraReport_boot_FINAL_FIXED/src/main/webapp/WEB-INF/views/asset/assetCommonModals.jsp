@@ -77,6 +77,141 @@
 let histories = [];
 let managers = [];
 
+window.addEventListener('load', (event) => {
+	<c:if test="${not empty histories}">
+	<c:forEach var="h" items="${histories}">
+	    histories.push({
+	        content: '${h.historyContent}',
+	        remark: '${h.historyRemark}'
+	    });
+	    
+	    var tableBody = document.querySelector('#historyTable tbody');
+
+	    var noDataRow = tableBody.querySelector('.no-data');
+	    if (noDataRow) noDataRow.remove();
+
+	    var tr = document.createElement('tr');
+	    tr.dataset.index = histories.length - 1;
+		
+	    //내용
+	    var tdContent = document.createElement('td');
+	    tdContent.textContent = '${h.historyContent}';
+
+	    //비고
+	    var tdRemark = document.createElement('td');
+	    tdRemark.textContent = '${h.historyRemark}';
+
+	    //삭제 버튼
+	    var tdDel = document.createElement('td');
+	    var btnDel = document.createElement('button');
+	    btnDel.type = 'button';
+	    btnDel.className = 'btn btn-sm btn-danger';
+	    btnDel.textContent = '삭제';
+	    btnDel.onclick = function() {
+	    	var tr = this.closest('tr');
+	    	var index = parseInt(tr.dataset.index, 10);
+
+	        // 배열에서 삭제
+	        histories.splice(index, 1);
+
+	        // tr 삭제
+	        tr.remove();
+
+	        // index 재정렬
+	        document.querySelectorAll('#historyTable tbody tr').forEach((row, i) => {
+	            row.dataset.index = i;
+	        });
+
+	        // 데이터 없으면 no-data 표시
+	        if(histories.length === 0){
+	        	var tbody = document.querySelector('#historyTable tbody');
+	            tbody.innerHTML = `<tr class="no-data"><td colspan="3" class="text-center text-muted">데이터가 없습니다</td></tr>`;
+	            
+	            histories = [];
+	        }
+	    };
+	    tdDel.appendChild(btnDel);
+
+	    tr.appendChild(tdContent);
+	    tr.appendChild(tdRemark);
+	    tr.appendChild(tdDel);
+
+	    tableBody.appendChild(tr);
+	    
+	</c:forEach>
+	</c:if>
+
+	<c:if test="${not empty managers}">
+	<c:forEach var="m" items="${managers}">
+		managers.push({
+		    name:'${m.managerName}',
+		    phone:'${m.managerPhoneNumber}',
+		    mobile:'${m.managerMobileNumber}',
+		    email:'${m.managerEmail}'
+		});
+		
+		var tableBody = document.querySelector('#managerTable tbody');
+		
+		var noDataRow = tableBody.querySelector('.no-data');
+	    if (noDataRow) noDataRow.remove();
+
+	    var tr = document.createElement('tr');
+	    tr.dataset.index = managers.length - 1;
+	    
+	    // 이름
+	    var tdName = document.createElement('td');
+	    tdName.textContent = '${m.managerName}';
+
+	    // 전화번호
+	    var tdPhone = document.createElement('td');
+	    tdPhone.textContent = '${m.managerPhoneNumber}';
+
+	    // 핸드폰번호
+	    var tdMobile = document.createElement('td');
+	    tdMobile.textContent = '${m.managerMobileNumber}';
+
+	    // 이메일
+	    var tdEmail = document.createElement('td');
+	    tdEmail.textContent = '${m.managerEmail}';
+
+	    // 삭제 버튼
+	    var tdDel = document.createElement('td');
+	    var btnDel = document.createElement('button');
+	    btnDel.type = 'button';
+	    btnDel.className = 'btn btn-sm btn-danger';
+	    btnDel.textContent = '삭제';
+	    btnDel.onclick = function() {
+	    	var tr = this.closest('tr');
+	    	var index = parseInt(tr.dataset.index, 10);
+
+	        managers.splice(index, 1);
+	        tr.remove();
+
+	        document.querySelectorAll('#managerTable tbody tr').forEach((row, i) => {
+	            row.dataset.index = i;
+	        });
+
+	        if(managers.length === 0){
+	            document.querySelector('#managerTable tbody').innerHTML = `<tr class="no-data"><td colspan="5" class="text-center text-muted">데이터가 없습니다</td></tr>`;
+	            
+	            managers = [];
+	        }
+	    };
+	    tdDel.appendChild(btnDel);
+
+	    // tr에 td 추가
+	    tr.appendChild(tdName);
+	    tr.appendChild(tdPhone);
+	    tr.appendChild(tdMobile);
+	    tr.appendChild(tdEmail);
+	    tr.appendChild(tdDel);
+
+	    tableBody.appendChild(tr);
+	</c:forEach>
+	</c:if>
+	    
+});
+
 //자원이력 초기화
 const historyModalEl = document.getElementById('historyModal');
 historyModalEl.addEventListener('show.bs.modal', function (event) {
@@ -200,6 +335,7 @@ function addManagerRow() {
     });
 
     const tableBody = document.querySelector('#managerTable tbody');
+    
     const noDataRow = tableBody.querySelector('.no-data');
     if (noDataRow) noDataRow.remove();
 

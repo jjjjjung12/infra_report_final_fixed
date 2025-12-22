@@ -28,7 +28,11 @@
 <div class="container">
     <div class="content-card">
         <h3 class="page-title mb-4">
-            <i class="fas fa-microchip me-2"></i>하드웨어 등록
+            <i class="fas fa-microchip me-2"></i>
+            <c:choose>
+		        <c:when test="${not empty idx}">하드웨어 수정</c:when>
+		        <c:otherwise>하드웨어 등록</c:otherwise>
+		    </c:choose>
         </h3>
 
         <form id="hardwareForm">
@@ -39,7 +43,11 @@
 			            <option value="">서비스를 선택하세요</option>
 			
 			            <c:forEach var="service" items="${assetServiceList}">
-			                <option value="${service.serviceIdx}">
+			                <option value="${service.serviceIdx}"
+			                	<c:if test="${hardware.serviceIdx == service.serviceIdx}">
+					                selected
+					            </c:if>
+			                >
 			                    ${service.serviceName}
 			                </option>
 			            </c:forEach>
@@ -50,23 +58,23 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label">HW 구분 <span class="text-danger">*</span></label>
-                    <input type="text" name="hardwareType" class="form-control" maxlength="50" required>
+                    <input type="text" name="hardwareType" class="form-control" maxlength="50" required value="${hardware.hardwareType}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">제조사 <span class="text-danger">*</span></label>
-                    <input type="text" name="manufacturer" class="form-control" maxlength="100" required>
+                    <input type="text" name="manufacturer" class="form-control" maxlength="100" required value="${hardware.hardwareManufacturer}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">제품명 <span class="text-danger">*</span></label>
-                    <input type="text" name="productName" class="form-control" maxlength="100" required>
+                    <input type="text" name="productName" class="form-control" maxlength="100" required value="${hardware.hardwareProductName}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">버전 <span class="text-danger">*</span></label>
-                    <input type="text" name="version" class="form-control" maxlength="20" required>
+                    <input type="text" name="version" class="form-control" maxlength="20" required value="${hardware.hardwareVersion}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">개수 <span class="text-danger">*</span></label>
-                    <input type="number" name="quantity" class="form-control" maxlength="20" required>
+                    <input type="number" name="quantity" class="form-control" maxlength="20" required  value="${hardware.hardwareQuantity}">
 <!--                     <input type="text" name="quantity" class="form-control" maxlength="20" oninput="onlyNumber(this)" required> -->
                 </div>
             </div>
@@ -201,6 +209,83 @@
 <script>
 let components = [];
 
+window.addEventListener('load', (event) => {
+	<c:if test="${not empty hardwareComponents}">
+	<c:forEach var="c" items="${hardwareComponents}">
+		components.push({
+	    	"type":'${c.componentType}',
+	    	"name":'${c.componentName}',
+	    	"quantity":'${c.componentQuantity}',
+	    	"description":'${c.componentDescription}'
+	    });
+	    
+		var tableBody = document.querySelector('#componentTable tbody');
+
+		var noDataRow = tableBody.querySelector('.no-data');
+	    if (noDataRow) noDataRow.remove();
+
+	    var tr = document.createElement('tr');
+	    tr.dataset.index = components.length - 1;
+		
+	    //구성
+	    var tdType = document.createElement('td');
+	    tdType.textContent = '${c.componentType}';
+
+	    //구성명칭
+	    var tdName = document.createElement('td');
+	    tdName.textContent = '${c.componentName}';
+
+	    //수량
+	    var tdQuantity = document.createElement('td');
+	    tdQuantity.textContent = '${c.componentQuantity}';
+
+	    //설명
+	    var tdDescription = document.createElement('td');
+	    tdDescription.textContent = '${c.componentDescription}';
+
+	    //삭제 버튼
+	    var tdDel = document.createElement('td');
+	    var btnDel = document.createElement('button');
+	    btnDel.type = 'button';
+	    btnDel.className = 'btn btn-sm btn-danger';
+	    btnDel.textContent = '삭제';
+	    btnDel.onclick = function() {
+	    	var tr = this.closest('tr');
+	    	var index = parseInt(tr.dataset.index, 10);
+
+	        // 배열에서 삭제
+	        components.splice(index, 1);
+
+	        // tr 삭제
+	        tr.remove();
+
+	        // index 재정렬
+	        document.querySelectorAll('#componentTable tbody tr').forEach((row, i) => {
+	            row.dataset.index = i;
+	        });
+
+	        // 데이터 없으면 no-data 표시
+	        if(components.length === 0){
+	        	var tbody = document.querySelector('#componentTable tbody');
+	            tbody.innerHTML = `<tr class="no-data"><td colspan="5" class="text-center text-muted">데이터가 없습니다</td></tr>`;
+	            
+	            components = [];
+	        }
+	    };
+	    tdDel.appendChild(btnDel);
+
+	    tr.appendChild(tdType);
+	    tr.appendChild(tdName);
+	    tr.appendChild(tdQuantity);
+	    tr.appendChild(tdDescription);
+	    tr.appendChild(tdDel);
+
+	    tableBody.appendChild(tr);
+	    
+	</c:forEach>
+	</c:if>
+});
+
 //구성정보 초기화
 const componentModalEl = document.getElementById('componentModal');
 componentModalEl.addEventListener('show.bs.modal', function (event) {
@@ -309,9 +394,19 @@ function addComponentRow() {
 }
 
 document.getElementById('hardwareForm').addEventListener('submit', function(e) {
+	
+	let url = '';
+	
+	if(!isNull('${idx}')) {
+		url = 'updateHardware';	
+	} else {
+		url = 'addHardware';
+	}
+	
 	e.preventDefault();
 
     const hardwareData = {
+    	"hardwareIdx":'${idx}',
     	"serviceIdx": document.getElementById('serviceSelect').value,
         "hardwareType": document.querySelector('[name="hardwareType"]').value,
         "manufacturer": document.querySelector('[name="manufacturer"]').value,
@@ -323,7 +418,7 @@ document.getElementById('hardwareForm').addEventListener('submit', function(e) {
         "managers": managers
     };
     
-    fetch('/asset/addHardware', {
+    fetch('/asset/'+url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(hardwareData)
