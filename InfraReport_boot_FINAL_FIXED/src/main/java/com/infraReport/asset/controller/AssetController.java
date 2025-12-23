@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.infraReport.asset.dto.AssetDTO;
@@ -49,6 +48,7 @@ public class AssetController {
     	List<Map<String, Object>> list = assetService.getAssetList(param);
     	
     	model.addAttribute("list", list);
+    	model.addAttribute("test", "test");
     	
         return "asset/assetList.tiles";
     }
@@ -203,6 +203,9 @@ public class AssetController {
     	
     	String hardwareIdx = request.getParameter("hardwareIdx");
     	
+    	String serviceIdx = request.getParameter("serviceIdx");
+    	
+    	//수정
     	if(!CommonUtils.isEmpty(hardwareIdx)) {
     		//하드웨어 조회
         	AssetDTO hardware = assetService.getAssetHardwareByIdx(Integer.parseInt(hardwareIdx));
@@ -234,6 +237,7 @@ public class AssetController {
     	model.addAttribute("assetServiceList", assetServiceList);
     	
     	model.addAttribute("idx", hardwareIdx);
+    	model.addAttribute("serviceIdx", serviceIdx);	//상세 페이지에 등록된 서비스가 있을 경우 자동으로 매칭
     	
     	return "asset/assetHardwareRegist.tiles";
     }
@@ -245,6 +249,9 @@ public class AssetController {
     public String softwareRegist(HttpServletRequest request, Model model) {
     	String softwareIdx = request.getParameter("softwareIdx");
     	
+    	String hardwareIdx = request.getParameter("hardwareIdx");
+    	
+    	//수정
     	if(!CommonUtils.isEmpty(softwareIdx)) {
     		//소프트웨어 조회
         	AssetDTO software = assetService.getAssetSoftwareByIdx(Integer.parseInt(softwareIdx));
@@ -270,6 +277,7 @@ public class AssetController {
     	model.addAttribute("assetHardwareList", assetHardwareList);
     	
     	model.addAttribute("idx", softwareIdx);
+    	model.addAttribute("hardwareIdx", hardwareIdx);	//상세 페이지에 등록된 하드웨어가 있을 경우 자동으로 매칭
     	
     	return "asset/assetSoftwareRegist.tiles";
     }

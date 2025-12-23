@@ -284,6 +284,11 @@ window.addEventListener('load', (event) => {
 	    
 	</c:forEach>
 	</c:if>
+	
+	if (isNull('${idx}') && !isNull('${serviceIdx}') && Number('${serviceIdx}') !== 0) {
+        const serviceSelect = document.getElementById('serviceSelect');
+        serviceSelect.value = '${serviceIdx}';
+    }
 });
 
 //구성정보 초기화

@@ -100,7 +100,7 @@
                    class="btn btn-outline-primary btn-sm">수정</a>
             </c:when>
             <c:otherwise>
-                <a href="/asset/hardwareRegist" class="btn btn-outline-success btn-sm">등록</a>
+                <a href="/asset/hardwareRegist<c:if test='${not empty serviceIdx}'>?serviceIdx=${serviceIdx}</c:if>" class="btn btn-outline-success btn-sm">등록</a>
             </c:otherwise>
         </c:choose>
     </div>
@@ -184,8 +184,7 @@
                    class="btn btn-outline-primary btn-sm">수정</a>
             </c:when>
             <c:otherwise>
-                <a href="/asset/softwareRegist"
-                   class="btn btn-outline-success btn-sm">등록</a>
+                <a href="/asset/softwareRegist<c:if test='${not empty hardwareIdx}'>?hardwareIdx=${hardwareIdx}</c:if>" class="btn btn-outline-success btn-sm">등록</a>
             </c:otherwise>
         </c:choose>
     </div>

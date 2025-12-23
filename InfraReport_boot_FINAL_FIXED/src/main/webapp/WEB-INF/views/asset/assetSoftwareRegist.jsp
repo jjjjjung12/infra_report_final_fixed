@@ -142,6 +142,16 @@
 <%@ include file="assetCommonModals.jsp" %>
 
 <script>
+
+
+window.addEventListener('load', (event) => {
+	if (isNull('${idx}') && !isNull('${hardwareIdx}') && Number('${hardwareIdx}') !== 0) {
+        const hardwareSelect = document.getElementById('hardwareSelect');
+        hardwareSelect.value = '${hardwareIdx}';
+    }
+});
+
+
 document.getElementById('softwareForm').addEventListener('submit', function(e) {
 	
 	let url = '';

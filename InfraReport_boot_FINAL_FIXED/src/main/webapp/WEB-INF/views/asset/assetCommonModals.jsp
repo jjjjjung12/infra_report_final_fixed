@@ -51,11 +51,11 @@
 	                    </div>
 	                    <div class="col-md-6">
 	                        <label class="form-label">전화번호</label>
-	                        <input id="managerPhone" name="managerPhone" type="text" class="form-control" maxlength="50">
+	                        <input id="managerPhone" name="managerPhone" type="text" class="form-control" maxlength="50" oninput="filterPhoneInput(this)">
 	                    </div>
 	                    <div class="col-md-6">
 	                        <label class="form-label">핸드폰번호</label>
-	                        <input id="managerMobile" name="managerMobile" type="text" class="form-control" maxlength="50">
+	                        <input id="managerMobile" name="managerMobile" type="text" class="form-control" maxlength="50" oninput="filterPhoneInput(this)">
 	                    </div>
 	                    <div class="col-md-6">
 	                        <label class="form-label">이메일</label>
@@ -405,4 +405,10 @@ function addManagerRow() {
     
 }
 
+//전화번호 필터
+function filterPhoneInput(el) {
+    el.value = el.value
+        .replace(/[^0-9-]/g, '')   // 숫자와 -만 허용
+        .replace(/-+/g, '-');      // -- 같은 중복 - 제거
+}
 </script>
