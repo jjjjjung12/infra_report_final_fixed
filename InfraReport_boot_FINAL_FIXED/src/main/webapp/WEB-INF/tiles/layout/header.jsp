@@ -24,6 +24,9 @@
                 <a href="/work/process/admin" class="btn btn-info me-2">
                     <i class="fas fa-tasks"></i> 작업관리
                 </a>
+                <a href="/tasks/process/admin" class="btn btn-info me-2">
+                    <i class="fas fa-tasks"></i> 일반작업관리
+                </a>
                 <a href="/dr/manage" class="btn btn-warning me-2">
                     <i class="fas fa-shield-alt"></i> DR훈련
                 </a>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.infraReport.tasks.dao.TasksDAO">
+
+	<!-- 작업 조회 -->
+    <select id="selectTasksInfoAllList" resultType="com.infraReport.tasks.dto.TasksDTO">
+        SELECT IDX
+		     , TASKS_NAME
+		     , REQUEST_DATE 
+		     , REQUEST_APPROVED_DATE 
+		     , CASE 
+		           WHEN REQUEST_STATUS = 'REQUEST' THEN '요청'
+		           WHEN REQUEST_STATUS = 'IN_PROGRESS' THEN '진행'
+		           WHEN REQUEST_STATUS = 'COMPLETED' THEN '완료'
+		       END AS REQUEST_STATUS 
+		     , PLAN_REQUEST_DATE 
+		     , PLAN_APPROVED_DATE 
+		     , PLAN_START_DATE 
+		     , PLAN_END_DATE 
+		     , CASE 
+		           WHEN PLAN_STATUS  = 'REQUEST' THEN '요청'
+		           WHEN PLAN_STATUS  = 'IN_PROGRESS' THEN '진행'
+		           WHEN PLAN_STATUS  = 'COMPLETED' THEN '완료'
+		       END AS PLAN_STATUS  
+		     , RESULT_REQUEST_DATE 
+		     , RESULT_APPROVED_DATE 
+		     , CASE 
+		           WHEN RESULT_STATUS  = 'REQUEST' THEN '요청'
+		           WHEN RESULT_STATUS  = 'IN_PROGRESS' THEN '진행'
+		           WHEN RESULT_STATUS  = 'COMPLETED' THEN '완료'
+		       END AS RESULT_STATUS   
+		     , CREATED_DATE
+		     , CREATED_BY 
+		     , UPDATED_DATE 
+		     , UPDATED_BY
+		  FROM tasks_info
+    </select>
+
+	<!-- 작업 파일 조회 -->
+    <select id="selectTasksFileUploadAllList" resultType="com.infraReport.tasks.dto.TasksFileDTO">
+        SELECT IDX
+		     , TASKS_IDX 
+		     , TASKS_STAGE
+		     , FILE_PATH 
+		     , FILE_NAME 
+		     , ORG_FILE_NAME 
+		     , CREATED_DATE 
+		     , CREATED_BY 
+		  FROM tasks_file_upload
+    </select>
+
+    <!-- 의뢰서 등록 -->
+    <insert id="insertTasksRequest" parameterType="com.infraReport.tasks.dto.TasksDTO" useGeneratedKeys="true" keyProperty="idx">
+	    INSERT INTO tasks_info (
+			  TASKS_NAME
+			, REQUEST_DATE 
+			, REQUEST_STATUS
+			, CREATED_BY 
+		) VALUES (
+			  #{tasksName}
+			, NOW()
+			, #{requestStatus}
+			, #{createdBy}
+		)
+	</insert>
+
+    <!-- 의뢰서 등록 -->
+    <insert id="insertTasksFileUpload" parameterType="com.infraReport.tasks.dto.TasksFileDTO">
+	    INSERT INTO tasks_file_upload (
+			  TASKS_IDX
+			, TASKS_STAGE
+			, FILE_PATH
+			, FILE_NAME
+			, ORG_FILE_NAME 
+			, CREATED_BY 
+		) VALUES (
+			  #{tasksIdx}
+			, #{tasksStage}
+			, #{filePath}
+			, #{fileName}
+			, #{orgFileName}
+			, #{createdBy}
+		)
+	</insert>
+	
+	<!-- 작업 수정 -->
+	<update id="updateTasks" parameterType="com.infraReport.tasks.dto.TasksFileDTO">
+		UPDATE tasks_info
+		   SET UPDATED_BY = #{updatedBy}
+		   <choose>
+            	<when test="tasksStage == 'REQUEST'">
+	                , REQUEST_DATE = NOW()
+	            </when>
+	            <when test="tasksStage == 'PLAN'">
+	                , PLAN_START_DATE = #{planStartDate}
+		            , PLAN_END_DATE = #{planEndDate}
+		            , PLAN_REQUEST_DATE = NOW()
+		            , PLAN_STATUS = #{taskStatus}
+	            </when>
+	            <when test="tasksStage == 'RESULT'">
+	                , RESULT_REQUEST_DATE = NOW()
+	                , RESULT_STATUS = #{taskStatus}
+	            </when>
+	        </choose>
+		 WHERE 1=1
+		   AND IDX = #{idx}
+	</update>
+	
+	<!-- 작업 파일 조회 -->
+    <select id="selectTasksFileByIdx" parameterType="Integer" resultType="com.infraReport.tasks.dto.TasksFileDTO">
+        SELECT IDX
+		     , TASKS_IDX 
+		     , TASKS_STAGE
+		     , FILE_PATH 
+		     , FILE_NAME 
+		     , ORG_FILE_NAME 
+		     , CREATED_DATE 
+		     , CREATED_BY 
+		  FROM tasks_file_upload
+		 WHERE 1=1
+		   AND IDX = #{idx}
+    </select>
+    
+    <!-- 파일 삭제 -->
+	<delete id="deleteFile" parameterType="Integer">
+		DELETE FROM tasks_file_upload
+		 WHERE 1=1
+		   AND IDX = #{idx}
+	</delete>
+    	
+	<!-- 단계별 승인 -->
+	<update id="updateApproved" parameterType="hashmap">
+		UPDATE tasks_info
+		   SET UPDATED_BY = #{updatedBy}
+		   <choose>
+	            <when test="tasksStage == 'REQUEST'">
+	                , REQUEST_APPROVED_DATE = NOW()
+	                , REQUEST_STATUS = #{taskStatus}
+	            </when>
+	            <when test="tasksStage == 'PLAN'">
+	                , PLAN_APPROVED_DATE = NOW()
+	                , PLAN_STATUS = #{taskStatus}
+	            </when>
+	            <when test="tasksStage == 'RESULT'">
+	                , RESULT_APPROVED_DATE = NOW()
+	                , RESULT_STATUS = #{taskStatus}
+	            </when>
+	        </choose>
+		 WHERE 1=1
+		   AND IDX = #{idx}
+	</update>
+</mapper>

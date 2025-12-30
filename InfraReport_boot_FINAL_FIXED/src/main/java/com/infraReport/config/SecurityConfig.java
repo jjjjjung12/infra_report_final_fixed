@@ -44,7 +44,7 @@ public class SecurityConfig {
                 // TV 대시보드 허용 (로그인 없이)
                 .antMatchers("/dashboard/tv").permitAll()
                 // 관리자 페이지
-                .antMatchers("/admin/**", "/work/process/admin/**", "/work/admin/**").hasRole("ADMIN")
+                .antMatchers("/admin/**", "/work/process/admin/**", "/work/admin/**", "/tasks/process/admin/**").hasRole("ADMIN")
                 .antMatchers("/api/work/admin/**").hasRole("ADMIN")
                 // 작업 관리 페이지
                 .antMatchers("/work/**", "/api/work/**").hasAnyRole("USER", "ADMIN")
