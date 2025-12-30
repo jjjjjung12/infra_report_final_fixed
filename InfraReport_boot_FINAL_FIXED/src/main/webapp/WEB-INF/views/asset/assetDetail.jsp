@@ -6,25 +6,98 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
+
 <style>
     body {
-	    background: linear-gradient(135deg, #667eea, #764ba2);
-	    font-family: 'Malgun Gothic';
-	}
-	.container { max-width: 1200px; }
-	.section-box {
-	    background: #fff;
-	    border-radius: 16px;
-	    box-shadow: 0 8px 25px rgba(0,0,0,.2);
-	    padding: 30px;
-	    margin: 30px 0;
-	}
-	.section-title {
-	    font-weight: bold;
-	    color: #667eea;
-	    border-left: 6px solid #667eea;
-	    padding-left: 12px;
-	}
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+        min-height: 100vh;
+        padding: 20px;
+    }
+    .container { 
+        max-width: 1200px;
+    }
+    .section-box {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        padding: 24px;
+        margin: 16px 0;
+    }
+    .section-title {
+        font-weight: 700;
+        color: #1a1a1a;
+        font-size: 1.125rem;
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+    }
+    
+    /* 테이블 */
+    .table {
+        font-size: 0.875rem;
+        margin-bottom: 0 !important;
+    }
+    .table th {
+        background: #f8f9fa !important;
+        color: #495057 !important;
+        font-weight: 600;
+        padding: 10px !important;
+        width: 140px;
+        border-top: 1px solid #dee2e6 !important;
+        border-bottom: 2px solid #dee2e6 !important;
+    }
+    .table td {
+        padding: 10px !important;
+    }
+    .table-bordered {
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    
+    /* 버튼 */
+    .btn {
+        padding: 8px 16px !important;
+        font-size: 0.875rem !important;
+        font-weight: 500;
+        border-radius: 6px;
+    }
+    .btn-sm {
+        padding: 6px 12px !important;
+        font-size: 0.813rem !important;
+    }
+    .btn-primary {
+        background: #667eea !important;
+        border: none !important;
+    }
+    .btn-primary:hover {
+        background: #5568d3 !important;
+    }
+    .btn-outline-secondary {
+        border-color: #dee2e6 !important;
+        color: #6c757d !important;
+    }
+    .btn-outline-secondary:hover {
+        background: #6c757d !important;
+        color: white !important;
+        border-color: #6c757d !important;
+    }
+    
+    /* 정보 행 */
+    .info-row {
+        display: flex;
+        margin-bottom: 10px;
+        font-size: 0.875rem;
+    }
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+        min-width: 120px;
+    }
+    .info-value {
+        color: #212529;
+    }
 </style>
 <div class="container">
 

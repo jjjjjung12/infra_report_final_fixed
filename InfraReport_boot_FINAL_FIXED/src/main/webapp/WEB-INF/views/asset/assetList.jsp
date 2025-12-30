@@ -8,31 +8,202 @@
 
 <style>
     body {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        font-family: 'Malgun Gothic';
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
         min-height: 100vh;
+        padding: 20px;
     }
     .content-card {
         background: #fff;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,.2);
-        padding: 30px;
-        margin: 30px auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        padding: 24px;
+        margin: 0 auto;
+        max-width: 1400px;
     }
     .page-title {
-        font-weight: bold;
+        font-weight: 700;
+        color: #1a1a1a;
+        font-size: 1.5rem;
+        margin-bottom: 20px !important;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #667eea;
+    }
+    
+    /* 검색 필터 */
+    #searchForm {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px !important;
+    }
+    #searchForm .filter-row {
+        display: flex;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px !important;
+    }
+    #searchForm strong {
+        min-width: 80px;
+        font-size: 0.938rem;
+        font-weight: 600;
+        color: #495057;
+        flex-shrink: 0;
+        padding-top: 8px;
+    }
+    
+    /* 숨겨진 항목 컨테이너 */
+    .hidden-items {
+        display: none;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .hidden-items.show {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    /* 체크박스를 버튼처럼 보이게 */
+    #searchForm label {
+        position: relative;
+        font-size: 0.875rem;
+        margin: 0 !important;
+        padding: 8px 16px;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #6c757d;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    #searchForm label:hover {
+        border-color: #667eea;
+        background: #f0f4ff;
         color: #667eea;
     }
+    #searchForm input[type="checkbox"] {
+        display: none;
+    }
+    #searchForm input[type="checkbox"]:checked + span,
+    #searchForm label:has(input[type="checkbox"]:checked) {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+        font-weight: 600;
+    }
+    
+    /* 더보기 버튼 */
+    .more-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: #667eea;
+        color: white;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.2rem;
+        line-height: 1;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+    .more-btn:hover {
+        background: #5568d3;
+        color: white;
+        transform: scale(1.05);
+    }
+    
+    /* 테이블 */
+    .table {
+        font-size: 0.875rem;
+        margin-bottom: 0 !important;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .table th {
+        background: #f8f9fa !important;
+        color: #495057 !important;
+        font-weight: 600;
+        padding: 12px 10px !important;
+        border-top: 1px solid #dee2e6 !important;
+        border-bottom: 2px solid #dee2e6 !important;
+        text-align: center;
+    }
+    .table td {
+        padding: 10px !important;
+        vertical-align: middle;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .table tbody tr:hover {
+        background: #f8f9fa;
+    }
     .table-responsive {
-	    overflow-x: auto;
-	    -webkit-overflow-scrolling: touch; /* 모바일 스크롤 부드럽게 */
-	}
-	table th, table td {
-	    white-space: nowrap; 		/* 줄바꿈 방지 			*/
-	    max-width: 150px;    		/* 최대 폭 			*/
-	    overflow: hidden;    		/* 넘치는 텍스트 숨김 	*/
-	    text-overflow: ellipsis; 	/* ... 표시 			*/
-	}
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+    }
+    table th, table td {
+        white-space: nowrap;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* 버튼 */
+    .btn {
+        padding: 8px 16px !important;
+        font-size: 0.875rem !important;
+        font-weight: 500;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    .btn-primary {
+        background: #667eea !important;
+        border: none !important;
+        color: white !important;
+    }
+    .btn-primary:hover {
+        background: #5568d3 !important;
+    }
+    .btn-success, .btn-warning {
+        background: #667eea !important;
+        border: none !important;
+        color: white !important;
+    }
+    .btn-success:hover, .btn-warning:hover {
+        background: #5568d3 !important;
+    }
+    
+    /* 상세 버튼 */
+    .btn-detail {
+        background: #667eea !important;
+        border: none !important;
+        color: white !important;
+        font-weight: 600 !important;
+        padding: 8px 20px !important;
+        font-size: 0.875rem !important;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+        transition: all 0.2s;
+    }
+    .btn-detail:hover {
+        background: #5568d3 !important;
+        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        transform: translateY(-1px);
+    }
+    
+    /* 등록 버튼 그룹 */
+    .btn-group {
+        gap: 8px;
+    }
 </style>
 
 <div class="container">
@@ -45,7 +216,7 @@
 		<form id="searchForm" class="mb-4">
 		
 		    <!-- 서비스 -->
-		    <div class="mb-2">
+		    <div class="mb-2 filter-row">
 		        <strong class="me-3">서비스</strong>
 		        <c:forEach items="${serviceList}" var="svc" varStatus="st">
 		            <c:if test="${st.index < 5}">
@@ -55,11 +226,8 @@
 		                </label>
 		            </c:if>
 		        </c:forEach>
-		        <a href="javascript:void(0)" onclick="toggleMore('serviceMore')" class="text-primary ms-2">
-		            더보기
-		        </a>
-		
-		        <div id="serviceMore" class="d-none mt-2">
+		        
+		        <span id="serviceMore" class="hidden-items">
 		            <c:forEach items="${serviceList}" var="svc" varStatus="st">
 		                <c:if test="${st.index >= 5}">
 		                    <label class="me-2">
@@ -68,11 +236,17 @@
 		                    </label>
 		                </c:if>
 		            </c:forEach>
-		        </div>
+		        </span>
+		        
+		        <c:if test="${fn:length(serviceList) > 5}">
+		            <a href="javascript:void(0)" onclick="toggleMore('serviceMore', this)" class="more-btn ms-2" title="더보기">
+		                +
+		            </a>
+		        </c:if>
 		    </div>
 		
 		    <!-- 하드웨어 -->
-		    <div class="mb-2">
+		    <div class="mb-2 filter-row">
 		        <strong class="me-3">하드웨어</strong>
 		        <c:forEach items="${hardwareList}" var="hw" varStatus="st">
 		            <c:if test="${st.index < 5}">
@@ -82,11 +256,8 @@
 		                </label>
 		            </c:if>
 		        </c:forEach>
-		        <a href="javascript:void(0)" onclick="toggleMore('hardwareMore')" class="text-primary ms-2">
-		            더보기
-		        </a>
-		
-		        <div id="hardwareMore" class="d-none mt-2">
+		        
+		        <span id="hardwareMore" class="hidden-items">
 		            <c:forEach items="${hardwareList}" var="hw" varStatus="st">
 		                <c:if test="${st.index >= 5}">
 		                    <label class="me-2">
@@ -95,11 +266,17 @@
 		                    </label>
 		                </c:if>
 		            </c:forEach>
-		        </div>
+		        </span>
+		        
+		        <c:if test="${fn:length(hardwareList) > 5}">
+		            <a href="javascript:void(0)" onclick="toggleMore('hardwareMore', this)" class="more-btn ms-2" title="더보기">
+		                +
+		            </a>
+		        </c:if>
 		    </div>
 		
 		    <!-- 소프트웨어 -->
-		    <div class="mb-3">
+		    <div class="mb-3 filter-row">
 		        <strong class="me-3">소프트웨어</strong>
 		        <c:forEach items="${softwareList}" var="sw" varStatus="st">
 		            <c:if test="${st.index < 5}">
@@ -109,11 +286,8 @@
 		                </label>
 		            </c:if>
 		        </c:forEach>
-		        <a href="javascript:void(0)" onclick="toggleMore('softwareMore')" class="text-primary ms-2">
-		            더보기
-		        </a>
-		
-		        <div id="softwareMore" class="d-none mt-2">
+		        
+		        <span id="softwareMore" class="hidden-items">
 		            <c:forEach items="${softwareList}" var="sw" varStatus="st">
 		                <c:if test="${st.index >= 5}">
 		                    <label class="me-2">
@@ -122,12 +296,18 @@
 		                    </label>
 		                </c:if>
 		            </c:forEach>
-		        </div>
+		        </span>
+		        
+		        <c:if test="${fn:length(softwareList) > 5}">
+		            <a href="javascript:void(0)" onclick="toggleMore('softwareMore', this)" class="more-btn ms-2" title="더보기">
+		                +
+		            </a>
+		        </c:if>
 		    </div>
 		
 		    <!-- 검색 버튼 -->
 		    <div class="text-end">
-		        <button class="btn btn-primary">
+		        <button type="button" class="btn btn-primary" onclick="searchAssets()">
 		            <i class="fas fa-search"></i> 검색
 		        </button>
 		    </div>
@@ -179,7 +359,7 @@
                     <td>${row.SOFTWARE_PRODUCT_NAME}</td>
                     <td>${row.SOFTWARE_VERSION}</td>
                     <td>
-                        <a href="detail?serviceIdx=${row.SERVICE_IDX}&hardwareIdx=${row.HARDWARE_IDX}&softwareIdx=${row.SOFTWARE_IDX}" class="btn btn-sm btn-outline-primary">
+                        <a href="detail?serviceIdx=${row.SERVICE_IDX}&hardwareIdx=${row.HARDWARE_IDX}&softwareIdx=${row.SOFTWARE_IDX}" class="btn btn-sm btn-detail">
                             상세
                         </a>
                     </td>
@@ -191,43 +371,56 @@
     </div>
 </div>
 
-
 <script>
-function toggleMore(id) {
+function toggleMore(id, btn) {
     const el = document.getElementById(id);
-    el.classList.toggle('d-none');
+    el.classList.toggle('show');
+    
+    // 버튼 텍스트 변경
+    if (el.classList.contains('show')) {
+        btn.textContent = '-';
+        btn.title = '접기';
+    } else {
+        btn.textContent = '+';
+        btn.title = '더보기';
+    }
 }
 
-document.getElementById('searchForm').addEventListener('submit', function(e) {
+function searchAssets() {
+	var serviceIdxArr = [];
+	var hardwareIdxArr = [];
+	var softwareIdxArr = [];
 	
-	e.preventDefault();
+	$("input[name='serviceIdx']:checked").each(function() {
+		serviceIdxArr.push($(this).val());
+	});
+	$("input[name='hardwareIdx']:checked").each(function() {
+		hardwareIdxArr.push($(this).val());
+	});
+	$("input[name='softwareIdx']:checked").each(function() {
+		softwareIdxArr.push($(this).val());
+	});
 	
-	const form = document.getElementById('searchForm');
-    const formData = new FormData(form);
+	$.ajax({
+		url: '/asset/getAssetList',
+		type: 'GET',
+		data: {
+			serviceIdxArr: serviceIdxArr,
+			hardwareIdxArr: hardwareIdxArr,
+			softwareIdxArr: softwareIdxArr
+		},
+		traditional: true,
+		success: function(res) {
+			renderList(res.list);
+		},
+		error: function(xhr, status, err) {
+			alert('검색에 실패했습니다: ' + err);
+		}
+	});
+}
 
-    // 리스트 형태로 보내기
-    const data = {};
-    formData.forEach((value, key) => {
-        if (!data[key]) data[key] = [];
-        data[key].push(Number(value));
-    });
-    
-    fetch('/asset/getAssetList', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
-    	updateTable(result);
-    });
-});
-
-function updateTable(list) {
-	let html = "";
-	
-	$("#assetTableBody").empty();
-	
+function renderList(list) {
+	var html = '';
 	if(!isNull(list)) {
 		if(list.length > 0) {
 			for(var i=0; i<list.length; i++) {
@@ -242,18 +435,22 @@ function updateTable(list) {
 	            html += '    <td>'+(list[i].SOFTWARE_PRODUCT_NAME ?? '')+'</td>';
 	            html += '    <td>'+(list[i].SOFTWARE_VERSION ?? '')+'</td>';
 	            html += '    <td>';
-	            html += '        <a href="detail?serviceIdx='+(list[i].SERVICE_IDX ?? '')+'&hardwareIdx='+(list[i].HARDWARE_IDX ?? '')+'&softwareIdx='+(list[i].SOFTWARE_IDX ?? '')+'" class="btn btn-sm btn-outline-primary">';
+	            html += '        <a href="detail?serviceIdx='+(list[i].SERVICE_IDX ?? '')+'&hardwareIdx='+(list[i].HARDWARE_IDX ?? '')+'&softwareIdx='+(list[i].SOFTWARE_IDX ?? '')+'" class="btn btn-sm btn-detail">';
 	            html += '            상세';
 	            html += '        </a>';
 	            html += '    </td>';
 	            html += '</tr>';
 			}
 		} else {
-			html += '<tr><td colspan="10">조회된 데이터가 없습니다.</td></tr>';	
+            html += '<tr><td colspan="10" class="text-center">데이터가 없습니다.</td></tr>';
 		}
 	} else {
-		html += '<tr><td colspan="10">조회된 데이터가 없습니다.</td></tr>';
+        html += '<tr><td colspan="10" class="text-center">데이터가 없습니다.</td></tr>';
 	}
-	$("#assetTableBody").append(html);
+	$('#assetTableBody').html(html);
+}
+
+function isNull(obj) {
+	return (typeof obj == "undefined" || obj == null || obj == "");
 }
 </script>
